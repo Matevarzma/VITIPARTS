@@ -5,9 +5,9 @@ function Navbar({ isAdminAuthenticated }) {
     <header className="site-header">
       <div className="container header-top">
         <Link to="/" className="brand">
-          <span className="brand-title">VITIPARTS</span>
-          <span className="brand-subtitle">Car Parts Catalog</span>
-        </Link>
+  <img src="/logo.png" alt="VITIPARTS logo" className="brand-logo" />
+</Link>
+      
 
         <div className="header-search">
           <input

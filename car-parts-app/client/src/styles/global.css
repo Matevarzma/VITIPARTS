@@ -89,15 +89,16 @@ select {
 }
 
 .brand {
-  display: inline-flex;
-  flex-direction: column;
-  gap: 2px;
-  border: 1px solid #5b5c61;
-  background: #121213;
-  padding: 10px 14px;
-  min-width: 170px;
+  display: flex;
+  align-items: center;
 
-  justify-self: start; /* 👈 keeps it on the left */
+  justify-self: start; /* keeps it left */
+  margin-left: -10px;  /* 👈 move slightly left */
+}
+
+.brand-logo {
+  height: 70px;   /* 👈 controls size */
+  width: auto;
 }
 
 .brand-title {
