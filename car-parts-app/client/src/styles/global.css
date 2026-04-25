@@ -99,6 +99,7 @@ select {
 .brand-logo {
   height: 70px;   /* 👈 controls size */
   width: auto;
+  margin-left: -20px;
 }
 
 .brand-title {
