@@ -81,9 +81,9 @@ select {
 }
 
 .header-top {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: space-between;
   gap: 20px;
   padding: 18px 0;
 }
@@ -96,6 +96,8 @@ select {
   background: #121213;
   padding: 10px 14px;
   min-width: 170px;
+
+  justify-self: start; /* 👈 keeps it on the left */
 }
 
 .brand-title {
@@ -110,10 +112,12 @@ select {
 }
 
 .header-search {
-  flex: 1;
+  width: 100%;
   max-width: 520px;
   display: flex;
   align-items: center;
+
+  justify-self: center; /* 👈 THIS centers it perfectly */
 }
 
 .header-search input {
