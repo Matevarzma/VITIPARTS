@@ -105,7 +105,7 @@ function CarPage() {
     <section className="page-section">
       <div className="container">
         <Link to={backPath} className="back-link">
-          მანქანებთან დაბრუნება
+          უკან დაბრუნება
         </Link>
 
         {isLoading ? (
@@ -135,7 +135,7 @@ function CarPage() {
                   <h1>{car.model}</h1>
                   <p className="car-year">{car.year}</p>
                   <p className="car-description">
-                    {car.description || "აღწერა არ არის დამატებული."}
+                    {car.description || ""}
                   </p>
                 </div>
               </div>
@@ -144,12 +144,12 @@ function CarPage() {
             <div className="section-heading">
               <div>
                 <p className="eyebrow">ნაწილების კატალოგი</p>
-                <h2>ამ მანქანის ნაწილები</h2>
+               
               </div>
               <p className="section-copy">
                 {searchTerm
                   ? `ნაჩვენებია ${parts.length}-დან ${filteredParts.length} ნაწილი მოთხოვნისთვის: "${searchTerm}".`
-                  : "ნაწილი მოძებნეთ სახელით ან კოდით, ან გამოიყენეთ კატეგორიის ფილტრი."}
+                  : ""}
               </p>
             </div>
 
@@ -157,8 +157,7 @@ function CarPage() {
               <>
                 <div className="filter-toolbar">
                   <div className="filter-toolbar-copy">
-                    <p className="eyebrow">ფილტრი</p>
-                    <h3>კატეგორიით ძებნა</h3>
+                    
                   </div>
 
                   <div className="filter-pills">
@@ -196,10 +195,9 @@ function CarPage() {
                   </div>
                 ) : (
                   <div className="empty-state">
-                    <h3>არჩეულ ფილტრებს შესაბამისი ნაწილები ვერ მოიძებნა</h3>
+                    <h3>არჩეულ ფილტრების შესაბამისი ნაწილები ვერ მოიძებნა</h3>
                     <p>
-                      სცადეთ სხვა კატეგორია ან საძიებო სიტყვა, ან დაამატეთ მეტი
-                      ნაწილები ადმინის გვერდიდან.
+                      სცადეთ სხვა კატეგორია 
                     </p>
                   </div>
                 )}
@@ -207,7 +205,7 @@ function CarPage() {
             ) : (
               <div className="empty-state">
                 <h3>ნაწილები ვერ მოიძებნა</h3>
-                <p>ეს მანქანა არსებობს, მაგრამ მისთვის ნაწილები ჯერ არ არის დამატებული.</p>
+                <p>ნაწილები ჯერ არ არის დამატებული.</p>
               </div>
             )}
           </>

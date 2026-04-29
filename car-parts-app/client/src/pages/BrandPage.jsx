@@ -91,7 +91,7 @@ function BrandPage() {
     <section className="page-section">
       <div className="container">
         <Link to="/" className="back-link">
-          ბრენდებთან დაბრუნება
+          უკან დაბრუნება
         </Link>
 
         {isLoading ? (
