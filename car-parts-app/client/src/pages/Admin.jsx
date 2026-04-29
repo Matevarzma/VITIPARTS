@@ -9,6 +9,7 @@ import {
   createBrand,
   createCar,
   createPartForCar,
+  deleteBrandById,
   deleteCarById,
   deletePartById,
   getAdminSession,
@@ -360,6 +361,28 @@ function Admin() {
     }
   };
 
+  const handleDeleteBrand = async (brand) => {
+    const shouldDelete = window.confirm(
+      `ნამდვილად გსურთ "${brand.name}" ბრენდის წაშლა? მასთან დაკავშირებული მანქანები და ნაწილებიც წაიშლება.`
+    );
+
+    if (!shouldDelete) {
+      return;
+    }
+
+    try {
+      setPageError("");
+      setNotice("");
+
+      await deleteBrandById(brand._id);
+      setNotice(`ბრენდი "${brand.name}" წაიშალა.`);
+      await loadBrands();
+      await loadCars();
+    } catch (error) {
+      handleProtectedError(error, "ბრენდის წაშლა ვერ მოხერხდა.");
+    }
+  };
+
   const handleDeleteCar = async (car) => {
     const shouldDelete = window.confirm(
       `ნამდვილად გსურთ ${car.brand} ${car.model}-ის წაშლა? მასთან დაკავშირებული ნაწილებიც წაიშლება.`
@@ -624,6 +647,16 @@ function Admin() {
                         <p>
                           ამ ბრენდში {carCount} მანქანაა დამატებული
                         </p>
+                      </div>
+
+                      <div className="admin-car-actions">
+                        <button
+                          type="button"
+                          className="admin-button admin-button-danger"
+                          onClick={() => handleDeleteBrand(brand)}
+                        >
+                          წაშლა
+                        </button>
                       </div>
                     </article>
                   );

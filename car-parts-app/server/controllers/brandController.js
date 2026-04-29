@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const Brand = require("../models/Brand");
 const Car = require("../models/Car");
+const Part = require("../models/Part");
 
 const escapeRegex = (value = "") =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -99,9 +100,40 @@ const createBrand = async (req, res) => {
   }
 };
 
+const deleteBrand = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid brand ID." });
+    }
+
+    const brand = await Brand.findById(id);
+
+    if (!brand) {
+      return res.status(404).json({ message: "Brand not found." });
+    }
+
+    const brandCars = await Car.find({ brandId: id }).select("_id");
+    const carIds = brandCars.map((car) => car._id);
+
+    if (carIds.length > 0) {
+      await Part.deleteMany({ carId: { $in: carIds } });
+      await Car.deleteMany({ brandId: id });
+    }
+
+    await Brand.findByIdAndDelete(id);
+
+    res.status(200).json({ message: "Brand deleted successfully." });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to delete brand." });
+  }
+};
+
 module.exports = {
   getAllBrands,
   getBrandById,
   getCarsByBrandId,
   createBrand,
+  deleteBrand,
 };

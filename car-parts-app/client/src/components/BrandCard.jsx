@@ -9,7 +9,7 @@ function BrandCard({ brand }) {
     brand.description?.trim() || "ამ ბრენდში არსებული მანქანების ნახვა.";
 
   return (
-    <Link to={`/brands/${brandId}`} className="car-card">
+    <Link to={`/brands/${brandId}`} className="car-card brand-card">
       <div className="car-card-media">
         <img src={brandImage} alt={brand.name} />
       </div>

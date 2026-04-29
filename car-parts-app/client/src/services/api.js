@@ -38,6 +38,11 @@ export const createBrand = async (brandData) => {
   return response.data;
 };
 
+export const deleteBrandById = async (id) => {
+  const response = await api.delete(`/brands/${id}`, getAdminRequestConfig());
+  return response.data;
+};
+
 export const createCar = async (carData) => {
   const response = await api.post("/cars", carData, getAdminRequestConfig());
   return response.data;

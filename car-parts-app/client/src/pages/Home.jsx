@@ -115,7 +115,7 @@ function Home() {
           </div>
         ) : brands.length > 0 ? (
           filteredBrands.length > 0 ? (
-            <div className="cars-grid">
+            <div className="brands-grid">
               {filteredBrands.map((brand) => (
                 <BrandCard key={brand._id || brand.id} brand={brand} />
               ))}
