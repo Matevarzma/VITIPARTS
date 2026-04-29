@@ -146,11 +146,7 @@ function CarPage() {
                 <p className="eyebrow">ნაწილების კატალოგი</p>
                
               </div>
-              <p className="section-copy">
-                {searchTerm
-                  ? `ნაჩვენებია ${parts.length}-დან ${filteredParts.length} ნაწილი მოთხოვნისთვის: "${searchTerm}".`
-                  : ""}
-              </p>
+              
             </div>
 
             {parts.length > 0 ? (

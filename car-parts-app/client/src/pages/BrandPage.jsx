@@ -127,12 +127,12 @@ function BrandPage() {
             <div className="section-heading">
               <div>
                 <p className="eyebrow">მანქანები</p>
-                <h2>ამ ბრენდის მანქანები</h2>
+                
               </div>
               <p className="section-copy">
                 {searchTerm
                   ? `ნაჩვენებია ${cars.length}-დან ${filteredCars.length} მანქანა მოთხოვნისთვის: "${searchTerm}".`
-                  : "ქვემოთ მოცემული მანქანებიდან აირჩიეთ სასურველი, რათა მისი ნაწილები ნახოთ."}
+                  : ""}
               </p>
             </div>
 
@@ -152,7 +152,7 @@ function BrandPage() {
             ) : (
               <div className="empty-state">
                 <h3>ამ ბრენდზე მანქანები ჯერ არ არის დამატებული</h3>
-                <p>ადმინის გვერდიდან ამ ბრენდს მანქანები დაამატეთ.</p>
+                
               </div>
             )}
           </>
