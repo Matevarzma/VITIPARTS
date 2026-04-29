@@ -1,15 +1,19 @@
 import { getPartPlaceholder } from "../services/placeholders";
+import {
+  translateCategory,
+  translateCondition,
+} from "../services/catalogLabels";
 
 function formatPrice(price) {
   const safePrice = Number(price) || 0;
-  return `$${safePrice.toLocaleString()}`;
+  return `$${safePrice.toLocaleString("ka-GE")}`;
 }
 
 function PartCard({ part }) {
   const partImage =
     part.image?.trim() || getPartPlaceholder(part.code || part.name);
   const partDescription =
-    part.description?.trim() || "Original catalog part for the selected car.";
+    part.description?.trim() || "ამ მანქანისთვის განკუთვნილი კატალოგის ნაწილი.";
 
   return (
     <article className="part-card">
@@ -20,10 +24,12 @@ function PartCard({ part }) {
       <div className="part-card-body">
         <div className="part-card-topline">
           <span className="part-card-code">{part.code}</span>
-          <span className="part-card-condition">{part.condition}</span>
+          <span className="part-card-condition">
+            {translateCondition(part.condition)}
+          </span>
         </div>
         <h3 className="part-card-name">{part.name}</h3>
-        <p className="part-card-meta">{part.category}</p>
+        <p className="part-card-meta">{translateCategory(part.category)}</p>
         <p className="part-card-description">{partDescription}</p>
         <p className="part-card-price">{formatPrice(part.price)}</p>
       </div>

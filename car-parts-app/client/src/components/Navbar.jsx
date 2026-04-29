@@ -28,14 +28,14 @@ function Navbar({ isAdminAuthenticated }) {
     });
   };
 
-  let searchPlaceholder = "Search brands";
+  let searchPlaceholder = "ბრენდების ძებნა";
 
   if (location.pathname.startsWith("/brands/")) {
-    searchPlaceholder = "Search cars by model or year";
+    searchPlaceholder = "მანქანის მოდელის ან წლის ძებნა";
   }
 
   if (location.pathname.startsWith("/cars/")) {
-    searchPlaceholder = "Search parts by name or code";
+    searchPlaceholder = "ნაწილის სახელის ან კოდის ძებნა";
   }
 
   return (
@@ -53,9 +53,7 @@ function Navbar({ isAdminAuthenticated }) {
             placeholder={searchPlaceholder}
             aria-label={searchPlaceholder}
           />
-          <button type="submit">
-            Search
-          </button>
+          <button type="submit">ძებნა</button>
         </form>
       </div>
 
@@ -66,13 +64,13 @@ function Navbar({ isAdminAuthenticated }) {
             end
             className={({ isActive }) => (isActive ? "active" : "")}
           >
-            Home
+            მთავარი
           </NavLink>
           <NavLink
             to="/admin"
             className={({ isActive }) => (isActive ? "active" : "")}
           >
-            {isAdminAuthenticated ? "Admin Panel" : "Admin Login"}
+            {isAdminAuthenticated ? "ადმინის პანელი" : "ადმინის შესვლა"}
           </NavLink>
         </nav>
       </div>

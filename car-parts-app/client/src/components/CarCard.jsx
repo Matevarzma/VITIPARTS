@@ -17,7 +17,7 @@ function CarCard({ car }) {
         <p className="car-card-brand">{car.brand}</p>
         <h3 className="car-card-title">{car.model}</h3>
         <p className="car-card-year">{car.year}</p>
-        <span className="car-card-link">Open parts catalog</span>
+        <span className="car-card-link">ნაწილების ნახვა</span>
       </div>
     </Link>
   );

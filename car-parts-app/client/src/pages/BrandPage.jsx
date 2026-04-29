@@ -46,7 +46,7 @@ function BrandPage() {
           setError(
             getApiErrorMessage(
               requestError,
-              "Could not load this brand and its cars."
+              "ბრენდის და მისი მანქანების ჩატვირთვა ვერ მოხერხდა."
             )
           );
         }
@@ -91,21 +91,21 @@ function BrandPage() {
     <section className="page-section">
       <div className="container">
         <Link to="/" className="back-link">
-          Back to brands
+          ბრენდებთან დაბრუნება
         </Link>
 
         {isLoading ? (
           <div className="status-panel">
-            <h3>Loading brand details...</h3>
-            <p>The app is requesting the selected brand and its cars list.</p>
+            <h3>ბრენდის გვერდი იტვირთება...</h3>
+            <p>სისტემა არჩეული ბრენდის ინფორმაციას და მის მანქანებს ითხოვს.</p>
           </div>
         ) : error ? (
           <div className="status-panel status-panel-error">
-            <h3>Could not load this brand page</h3>
+            <h3>ბრენდის გვერდი ვერ ჩაიტვირთა</h3>
             <p>{error}</p>
             <p className="status-note">
-              Make sure the backend server is running and that this brand exists
-              in your database.
+              დარწმუნდით, რომ backend სერვერი მუშაობს და ეს ბრენდი მონაცემთა
+              ბაზაში არსებობს.
             </p>
           </div>
         ) : brand ? (
@@ -117,11 +117,11 @@ function BrandPage() {
                 </div>
 
                 <div className="car-info">
-                  <p className="eyebrow">Brand</p>
+                  <p className="eyebrow">ბრენდი</p>
                   <h1>{brand.name}</h1>
                   <p className="car-description">
                     {brand.description ||
-                      "Choose a car from this brand to open its parts catalog."}
+                      "აირჩიეთ ამ ბრენდის მანქანა, რათა მისი ნაწილების კატალოგი გახსნათ."}
                   </p>
                 </div>
               </div>
@@ -129,13 +129,13 @@ function BrandPage() {
 
             <div className="section-heading">
               <div>
-                <p className="eyebrow">Cars</p>
-                <h2>Available cars for this brand</h2>
+                <p className="eyebrow">მანქანები</p>
+                <h2>ამ ბრენდის მანქანები</h2>
               </div>
               <p className="section-copy">
                 {searchTerm
-                  ? `Showing ${filteredCars.length} of ${cars.length} cars for "${searchTerm}".`
-                  : "Choose one of the cars below to open its parts catalog."}
+                  ? `ნაჩვენებია ${cars.length}-დან ${filteredCars.length} მანქანა მოთხოვნისთვის: "${searchTerm}".`
+                  : "ქვემოთ მოცემული მანქანებიდან აირჩიეთ სასურველი, რათა მისი ნაწილები ნახოთ."}
               </p>
             </div>
 
@@ -148,21 +148,21 @@ function BrandPage() {
                 </div>
               ) : (
                 <div className="empty-state">
-                  <h3>No cars match your search</h3>
-                  <p>Try a different model, year, or keyword in the search bar.</p>
+                  <h3>თქვენს ძებნას შესაბამისი მანქანები ვერ მოიძებნა</h3>
+                  <p>სცადეთ სხვა მოდელი, წელი ან საკვანძო სიტყვა.</p>
                 </div>
               )
             ) : (
               <div className="empty-state">
-                <h3>No cars available for this brand yet</h3>
-                <p>Add cars to this brand from the admin page.</p>
+                <h3>ამ ბრენდზე მანქანები ჯერ არ არის დამატებული</h3>
+                <p>ადმინის გვერდიდან ამ ბრენდს მანქანები დაამატეთ.</p>
               </div>
             )}
           </>
         ) : (
           <div className="empty-state">
-            <h3>Brand not found</h3>
-            <p>The requested brand could not be found.</p>
+            <h3>ბრენდი ვერ მოიძებნა</h3>
+            <p>მოთხოვნილი ბრენდი ვერ მოიძებნა.</p>
           </div>
         )}
       </div>

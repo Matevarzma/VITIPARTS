@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 
 import PartCard from "../components/PartCard";
+import { translateCategory } from "../services/catalogLabels";
 import {
   getApiErrorMessage,
   getCarById,
@@ -45,7 +46,7 @@ function CarPage() {
           setError(
             getApiErrorMessage(
               requestError,
-              "Could not load this car and its parts."
+              "მანქანის და მისი ნაწილების ჩატვირთვა ვერ მოხერხდა."
             )
           );
         }
@@ -98,25 +99,27 @@ function CarPage() {
     });
   }, [activeCategory, normalizedSearch, parts]);
 
+  const backPath = car?.brandId ? `/brands/${car.brandId}` : "/";
+
   return (
     <section className="page-section">
       <div className="container">
-        <Link to="/" className="back-link">
-          Back to cars
+        <Link to={backPath} className="back-link">
+          მანქანებთან დაბრუნება
         </Link>
 
         {isLoading ? (
           <div className="status-panel">
-            <h3>Loading car details...</h3>
-            <p>The app is requesting the selected car and its parts list.</p>
+            <h3>მანქანის გვერდი იტვირთება...</h3>
+            <p>სისტემა არჩეული მანქანის ინფორმაციას და მის ნაწილებს ითხოვს.</p>
           </div>
         ) : error ? (
           <div className="status-panel status-panel-error">
-            <h3>Could not load this catalog page</h3>
+            <h3>კატალოგის გვერდი ვერ ჩაიტვირთა</h3>
             <p>{error}</p>
             <p className="status-note">
-              Make sure the backend server is running and that this car exists in
-              your database.
+              დარწმუნდით, რომ backend სერვერი მუშაობს და ეს მანქანა მონაცემთა
+              ბაზაში არსებობს.
             </p>
           </div>
         ) : car ? (
@@ -132,7 +135,7 @@ function CarPage() {
                   <h1>{car.model}</h1>
                   <p className="car-year">{car.year}</p>
                   <p className="car-description">
-                    {car.description || "No description available."}
+                    {car.description || "აღწერა არ არის დამატებული."}
                   </p>
                 </div>
               </div>
@@ -140,13 +143,13 @@ function CarPage() {
 
             <div className="section-heading">
               <div>
-                <p className="eyebrow">Parts Catalog</p>
-                <h2>Available parts for this car</h2>
+                <p className="eyebrow">ნაწილების კატალოგი</p>
+                <h2>ამ მანქანის ნაწილები</h2>
               </div>
               <p className="section-copy">
                 {searchTerm
-                  ? `Showing ${filteredParts.length} of ${parts.length} parts for "${searchTerm}".`
-                  : "Search by part name or code, or narrow the list with a category filter."}
+                  ? `ნაჩვენებია ${parts.length}-დან ${filteredParts.length} ნაწილი მოთხოვნისთვის: "${searchTerm}".`
+                  : "ნაწილი მოძებნეთ სახელით ან კოდით, ან გამოიყენეთ კატეგორიის ფილტრი."}
               </p>
             </div>
 
@@ -154,8 +157,8 @@ function CarPage() {
               <>
                 <div className="filter-toolbar">
                   <div className="filter-toolbar-copy">
-                    <p className="eyebrow">Filter</p>
-                    <h3>Browse by category</h3>
+                    <p className="eyebrow">ფილტრი</p>
+                    <h3>კატეგორიით ძებნა</h3>
                   </div>
 
                   <div className="filter-pills">
@@ -168,7 +171,7 @@ function CarPage() {
                         }`}
                         onClick={() => setActiveCategory(category)}
                       >
-                        {category}
+                        {translateCategory(category)}
                       </button>
                     ))}
                   </div>
@@ -176,10 +179,12 @@ function CarPage() {
 
                 <div className="parts-toolbar">
                   <p className="parts-summary">
-                    Showing <strong>{filteredParts.length}</strong> of{" "}
-                    <strong>{parts.length}</strong> parts
-                    {activeCategory !== "All" ? ` in ${activeCategory}` : ""}
-                    {searchTerm ? ` matching "${searchTerm}"` : ""}.
+                    ნაჩვენებია <strong>{filteredParts.length}</strong> /{" "}
+                    <strong>{parts.length}</strong> ნაწილი
+                    {activeCategory !== "All"
+                      ? ` კატეგორიაში: ${translateCategory(activeCategory)}`
+                      : ""}
+                    {searchTerm ? ` ძიებისთვის: "${searchTerm}"` : ""}.
                   </p>
                 </div>
 
@@ -191,25 +196,25 @@ function CarPage() {
                   </div>
                 ) : (
                   <div className="empty-state">
-                    <h3>No parts match your filters</h3>
+                    <h3>არჩეულ ფილტრებს შესაბამისი ნაწილები ვერ მოიძებნა</h3>
                     <p>
-                      Try another category or search term, or add more parts from
-                      the admin page.
+                      სცადეთ სხვა კატეგორია ან საძიებო სიტყვა, ან დაამატეთ მეტი
+                      ნაწილები ადმინის გვერდიდან.
                     </p>
                   </div>
                 )}
               </>
             ) : (
               <div className="empty-state">
-                <h3>No parts found</h3>
-                <p>This car exists, but there are no parts saved for it yet.</p>
+                <h3>ნაწილები ვერ მოიძებნა</h3>
+                <p>ეს მანქანა არსებობს, მაგრამ მისთვის ნაწილები ჯერ არ არის დამატებული.</p>
               </div>
             )}
           </>
         ) : (
           <div className="empty-state">
-            <h3>Car not found</h3>
-            <p>The requested car could not be found.</p>
+            <h3>მანქანა ვერ მოიძებნა</h3>
+            <p>მოთხოვნილი მანქანა ვერ მოიძებნა.</p>
           </div>
         )}
       </div>

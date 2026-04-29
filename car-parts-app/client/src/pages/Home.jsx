@@ -35,7 +35,7 @@ function Home() {
           setError(
             getApiErrorMessage(
               requestError,
-              "Could not load brands from the backend."
+              "ბრენდების ჩატვირთვა ვერ მოხერხდა."
             )
           );
         }
@@ -89,28 +89,28 @@ function Home() {
 
         <div className="section-heading">
           <div>
-            <p className="eyebrow">Brand Catalog</p>
-            <h2>Choose a brand first</h2>
+            <p className="eyebrow">ბრენდების კატალოგი</p>
+            <h2>ჯერ ბრენდი აირჩიეთ</h2>
           </div>
           <p className="section-copy">
             {searchTerm
-              ? `Showing ${filteredBrands.length} of ${brands.length} brands for "${searchTerm}".`
-              : "Browse the available brands first, then choose the car you need."}
+              ? `ნაჩვენებია ${brands.length}-დან ${filteredBrands.length} ბრენდი მოთხოვნისთვის: "${searchTerm}".`
+              : "ჯერ ხელმისაწვდომი ბრენდები დაათვალიერეთ, შემდეგ კი სასურველი მანქანა აირჩიეთ."}
           </p>
         </div>
 
         {isLoading ? (
           <div className="status-panel">
-            <h3>Loading brands...</h3>
-            <p>The homepage is requesting the available car brands.</p>
+            <h3>ბრენდები იტვირთება...</h3>
+            <p>მთავარი გვერდი ხელმისაწვდომი ბრენდების სიას ითხოვს.</p>
           </div>
         ) : error ? (
           <div className="status-panel status-panel-error">
-            <h3>Could not load the brand catalog</h3>
+            <h3>ბრენდების კატალოგი ვერ ჩაიტვირთა</h3>
             <p>{error}</p>
             <p className="status-note">
-              Make sure the backend server is running on port 5000 and MongoDB is
-              connected.
+              დარწმუნდით, რომ backend სერვერი მუშაობს `5000` პორტზე და MongoDB
+              დაკავშირებულია.
             </p>
           </div>
         ) : brands.length > 0 ? (
@@ -122,14 +122,14 @@ function Home() {
             </div>
           ) : (
             <div className="empty-state">
-              <h3>No brands match your search</h3>
-              <p>Try a different brand name or keyword in the search bar.</p>
+              <h3>თქვენს ძებნას შესაბამისი ბრენდები ვერ მოიძებნა</h3>
+              <p>სცადეთ სხვა ბრენდის სახელი ან საკვანძო სიტყვა.</p>
             </div>
           )
         ) : (
           <div className="empty-state">
-            <h3>No brands available yet</h3>
-            <p>Add your first brand from the admin page to start the catalog.</p>
+            <h3>ბრენდები ჯერ არ არის დამატებული</h3>
+            <p>კატალოგის დასაწყებად ადმინის გვერდიდან პირველი ბრენდი დაამატეთ.</p>
           </div>
         )}
       </div>
