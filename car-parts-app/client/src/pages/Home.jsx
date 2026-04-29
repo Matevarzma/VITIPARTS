@@ -90,12 +90,12 @@ function Home() {
         <div className="section-heading">
           <div>
             <p className="eyebrow">ბრენდების კატალოგი</p>
-            <h2>ჯერ ბრენდი აირჩიეთ</h2>
+            
           </div>
           <p className="section-copy">
             {searchTerm
               ? `ნაჩვენებია ${brands.length}-დან ${filteredBrands.length} ბრენდი მოთხოვნისთვის: "${searchTerm}".`
-              : "ჯერ ხელმისაწვდომი ბრენდები დაათვალიერეთ, შემდეგ კი სასურველი მანქანა აირჩიეთ."}
+              : "აირჩიეთ სასურველი ბრენდი"}
           </p>
         </div>
 

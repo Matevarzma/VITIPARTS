@@ -124,7 +124,17 @@ function BrandPage() {
               </div>
             </section>
 
-           
+            <div className="section-heading">
+              <div>
+                <p className="eyebrow">მანქანები</p>
+                <h2>ამ ბრენდის მანქანები</h2>
+              </div>
+              <p className="section-copy">
+                {searchTerm
+                  ? `ნაჩვენებია ${cars.length}-დან ${filteredCars.length} მანქანა მოთხოვნისთვის: "${searchTerm}".`
+                  : "ქვემოთ მოცემული მანქანებიდან აირჩიეთ სასურველი, რათა მისი ნაწილები ნახოთ."}
+              </p>
+            </div>
 
             {cars.length > 0 ? (
               filteredCars.length > 0 ? (
