@@ -19,6 +19,10 @@ import {
   isUnauthorizedError,
   loginAdmin,
 } from "../services/api";
+import {
+  translateCategory,
+  translateCondition,
+} from "../services/catalogLabels";
 import { getBrandPlaceholder, getCarPlaceholder } from "../services/placeholders";
 
 const initialBrandForm = {
@@ -113,7 +117,7 @@ function Admin() {
 
   const handleProtectedError = (error, fallbackMessage) => {
     if (isUnauthorizedError(error)) {
-      logoutAdminUser("Your admin session expired. Please sign in again.");
+      logoutAdminUser("ადმინის სესია ამოიწურა. გთხოვთ თავიდან შეხვიდეთ.");
       return;
     }
 
@@ -141,7 +145,7 @@ function Admin() {
         };
       });
     } catch (error) {
-      handleProtectedError(error, "Could not load brand data.");
+      handleProtectedError(error, "ბრენდების ჩატვირთვა ვერ მოხერხდა.");
     } finally {
       setBrandsLoading(false);
     }
@@ -166,7 +170,7 @@ function Admin() {
 
       setSelectedCarId(nextSelectedCar._id);
     } catch (error) {
-      handleProtectedError(error, "Could not load admin catalog data.");
+      handleProtectedError(error, "მანქანების სიის ჩატვირთვა ვერ მოხერხდა.");
     } finally {
       setCarsLoading(false);
     }
@@ -185,7 +189,7 @@ function Admin() {
       const partsData = await getPartsByCarId(carId);
       setParts(partsData);
     } catch (error) {
-      handleProtectedError(error, "Could not load parts for this car.");
+      handleProtectedError(error, "ამ მანქანის ნაწილების ჩატვირთვა ვერ მოხერხდა.");
       setParts([]);
     } finally {
       setPartsLoading(false);
@@ -213,7 +217,7 @@ function Admin() {
         }
       } catch (error) {
         if (isMounted) {
-          logoutAdminUser("Please sign in to access the admin area.");
+          logoutAdminUser("გთხოვთ შეხვიდეთ ადმინის სივრცეში.");
         }
       } finally {
         if (isMounted) {
@@ -300,7 +304,7 @@ function Admin() {
       }));
     } catch (error) {
       setAuthError(
-        getApiErrorMessage(error, "Could not sign in to the admin area.")
+        getApiErrorMessage(error, "ადმინის სივრცეში შესვლა ვერ მოხერხდა.")
       );
     } finally {
       setAuthSubmitting(false);
@@ -309,7 +313,7 @@ function Admin() {
   };
 
   const handleLogout = () => {
-    logoutAdminUser("You have been signed out of admin.");
+    logoutAdminUser("ადმინის პროფილიდან გამოხვედით.");
   };
 
   const handleCreateBrand = async (event) => {
@@ -323,11 +327,11 @@ function Admin() {
       const createdBrand = await createBrand(brandForm);
 
       setBrandForm(initialBrandForm);
-      setNotice(`Brand "${createdBrand.name}" was added.`);
+      setNotice(`ბრენდი "${createdBrand.name}" წარმატებით დაემატა.`);
       await loadBrands(createdBrand._id);
       await loadCars();
     } catch (error) {
-      handleProtectedError(error, "Could not create brand.");
+      handleProtectedError(error, "ბრენდის დამატება ვერ მოხერხდა.");
     } finally {
       setSubmittingBrand(false);
     }
@@ -347,10 +351,10 @@ function Admin() {
         ...initialCarForm,
         brandId: currentForm.brandId,
       }));
-      setNotice(`Car "${createdCar.brand} ${createdCar.model}" was added.`);
+      setNotice(`მანქანა "${createdCar.brand} ${createdCar.model}" დაემატა.`);
       await loadCars(createdCar._id);
     } catch (error) {
-      handleProtectedError(error, "Could not create car.");
+      handleProtectedError(error, "მანქანის დამატება ვერ მოხერხდა.");
     } finally {
       setSubmittingCar(false);
     }
@@ -358,7 +362,7 @@ function Admin() {
 
   const handleDeleteCar = async (car) => {
     const shouldDelete = window.confirm(
-      `Delete ${car.brand} ${car.model}? This will also remove its parts.`
+      `ნამდვილად გსურთ ${car.brand} ${car.model}-ის წაშლა? მასთან დაკავშირებული ნაწილებიც წაიშლება.`
     );
 
     if (!shouldDelete) {
@@ -370,10 +374,10 @@ function Admin() {
       setNotice("");
 
       await deleteCarById(car._id);
-      setNotice(`Car "${car.brand} ${car.model}" was deleted.`);
+      setNotice(`მანქანა "${car.brand} ${car.model}" წაიშალა.`);
       await loadCars(car._id === selectedCarId ? "" : selectedCarId);
     } catch (error) {
-      handleProtectedError(error, "Could not delete car.");
+      handleProtectedError(error, "მანქანის წაშლა ვერ მოხერხდა.");
     }
   };
 
@@ -395,17 +399,19 @@ function Admin() {
       });
 
       setPartForm(initialPartForm);
-      setNotice("Part added to the selected car.");
+      setNotice("ნაწილი წარმატებით დაემატა არჩეულ მანქანას.");
       await loadParts(selectedCarId);
     } catch (error) {
-      handleProtectedError(error, "Could not create part.");
+      handleProtectedError(error, "ნაწილის დამატება ვერ მოხერხდა.");
     } finally {
       setSubmittingPart(false);
     }
   };
 
   const handleDeletePart = async (part) => {
-    const shouldDelete = window.confirm(`Delete part "${part.name}"?`);
+    const shouldDelete = window.confirm(
+      `ნამდვილად გსურთ "${part.name}" ნაწილის წაშლა?`
+    );
 
     if (!shouldDelete) {
       return;
@@ -416,28 +422,25 @@ function Admin() {
       setNotice("");
 
       await deletePartById(part._id);
-      setNotice(`Part "${part.name}" was deleted.`);
+      setNotice(`ნაწილი "${part.name}" წაიშალა.`);
       await loadParts(selectedCarId);
     } catch (error) {
-      handleProtectedError(error, "Could not delete part.");
+      handleProtectedError(error, "ნაწილის წაშლა ვერ მოხერხდა.");
     }
   };
 
   const selectedCarImage = selectedCar
     ? selectedCar.image?.trim() ||
       getCarPlaceholder(`${selectedCar.brand} ${selectedCar.model}`)
-    : getCarPlaceholder("SELECT A CAR");
+    : getCarPlaceholder("აირჩიეთ მანქანა");
 
   if (authChecking) {
     return (
       <section className="page-section">
         <div className="container">
           <div className="status-panel">
-            <h3>Checking admin access...</h3>
-            <p>
-              The app is verifying whether you already have an active admin
-              session.
-            </p>
+            <h3>ადმინის წვდომა მოწმდება...</h3>
+            <p>სისტემა ამოწმებს, გაქვთ თუ არა აქტიური ადმინის სესია.</p>
           </div>
         </div>
       </section>
@@ -450,23 +453,24 @@ function Admin() {
         <div className="container">
           <div className="auth-shell">
             <section className="auth-card">
-              <p className="eyebrow">Admin Login</p>
-              <h1>Only you can manage the catalog</h1>
+              <p className="eyebrow">ადმინის შესვლა</p>
+              <h1>კატალოგის მართვა მხოლოდ თქვენ შეგიძლიათ</h1>
               <p>
-                Public visitors can browse brands, cars, and parts, but only the
-                configured admin account can create, edit, or delete catalog data.
+                მომხმარებლებს შეუძლიათ ბრენდების, მანქანებისა და ნაწილების
+                ნახვა, მაგრამ დამატება, შეცვლა და წაშლა მხოლოდ ადმინის ანგარიშით
+                არის შესაძლებელი.
               </p>
 
               {authError ? (
                 <div className="auth-error">
-                  <strong>Access denied</strong>
+                  <strong>წვდომა უარყოფილია</strong>
                   <p>{authError}</p>
                 </div>
               ) : null}
 
               <form className="auth-form" onSubmit={handleLogin}>
                 <label className="admin-field">
-                  <span>Username</span>
+                  <span>მომხმარებლის სახელი</span>
                   <input
                     name="username"
                     value={loginForm.username}
@@ -476,7 +480,7 @@ function Admin() {
                 </label>
 
                 <label className="admin-field">
-                  <span>Password</span>
+                  <span>პაროლი</span>
                   <input
                     name="password"
                     type="password"
@@ -491,7 +495,7 @@ function Admin() {
                   type="submit"
                   disabled={authSubmitting}
                 >
-                  {authSubmitting ? "Signing in..." : "Sign In"}
+                  {authSubmitting ? "შესვლა მიმდინარეობს..." : "შესვლა"}
                 </button>
               </form>
             </section>
@@ -506,10 +510,10 @@ function Admin() {
       <div className="container">
         <section className="placeholder-panel admin-intro admin-intro-bar">
           <div>
-            <p className="eyebrow">Admin</p>
-            <h1>Manage brands, cars, and parts</h1>
+            <p className="eyebrow">ადმინი</p>
+            <h1>ბრენდების, მანქანებისა და ნაწილების მართვა</h1>
             <p>
-              Signed in as <strong>{adminUsername}</strong>.
+              სისტემაში შესულია: <strong>{adminUsername}</strong>
             </p>
           </div>
 
@@ -518,20 +522,20 @@ function Admin() {
             className="admin-button admin-button-secondary"
             onClick={handleLogout}
           >
-            Log Out
+            გამოსვლა
           </button>
         </section>
 
         {notice ? (
           <div className="status-panel admin-notice">
-            <h3>Update saved</h3>
+            <h3>ცვლილება შენახულია</h3>
             <p>{notice}</p>
           </div>
         ) : null}
 
         {pageError ? (
           <div className="status-panel status-panel-error">
-            <h3>Admin request failed</h3>
+            <h3>მოთხოვნა ვერ შესრულდა</h3>
             <p>{pageError}</p>
           </div>
         ) : null}
@@ -540,14 +544,14 @@ function Admin() {
           <section className="admin-panel">
             <div className="admin-panel-heading">
               <div>
-                <p className="eyebrow">Add Brand</p>
-                <h2>Create a new brand entry</h2>
+                <p className="eyebrow">ბრენდის დამატება</p>
+                <h2>ახალი ბრენდის შექმნა</h2>
               </div>
             </div>
 
             <form className="admin-form" onSubmit={handleCreateBrand}>
               <label className="admin-field">
-                <span>Brand Name</span>
+                <span>ბრენდის სახელი</span>
                 <input
                   name="name"
                   value={brandForm.name}
@@ -558,7 +562,7 @@ function Admin() {
               </label>
 
               <label className="admin-field">
-                <span>Image URL</span>
+                <span>სურათის ბმული</span>
                 <input
                   name="image"
                   value={brandForm.image}
@@ -568,13 +572,13 @@ function Admin() {
               </label>
 
               <label className="admin-field admin-field-full">
-                <span>Description</span>
+                <span>აღწერა</span>
                 <textarea
                   name="description"
                   value={brandForm.description}
                   onChange={handleBrandFormChange}
                   rows="4"
-                  placeholder="Short description for this brand"
+                  placeholder="ბრენდის მოკლე აღწერა"
                 />
               </label>
 
@@ -583,7 +587,7 @@ function Admin() {
                 type="submit"
                 disabled={submittingBrand}
               >
-                {submittingBrand ? "Adding brand..." : "Add Brand"}
+                {submittingBrand ? "ბრენდი ემატება..." : "ბრენდის დამატება"}
               </button>
             </form>
           </section>
@@ -591,16 +595,16 @@ function Admin() {
           <section className="admin-panel">
             <div className="admin-panel-heading">
               <div>
-                <p className="eyebrow">Brands</p>
-                <h2>Saved brands</h2>
+                <p className="eyebrow">ბრენდები</p>
+                <h2>შენახული ბრენდები</h2>
               </div>
-              <span className="admin-count">{brands.length} total</span>
+              <span className="admin-count">სულ {brands.length}</span>
             </div>
 
             {brandsLoading ? (
               <div className="admin-empty">
-                <h3>Loading brands...</h3>
-                <p>The admin page is requesting the brand list.</p>
+                <h3>ბრენდები იტვირთება...</h3>
+                <p>ადმინის გვერდი ბრენდების სიას ითხოვს.</p>
               </div>
             ) : brands.length > 0 ? (
               <div className="admin-list">
@@ -618,7 +622,7 @@ function Admin() {
                       <div className="admin-car-summary">
                         <h3>{brand.name}</h3>
                         <p>
-                          {carCount} car{carCount === 1 ? "" : "s"} in this brand
+                          ამ ბრენდში {carCount} მანქანაა დამატებული
                         </p>
                       </div>
                     </article>
@@ -627,8 +631,8 @@ function Admin() {
               </div>
             ) : (
               <div className="admin-empty">
-                <h3>No brands have been added yet</h3>
-                <p>Create your first brand with the form on the left.</p>
+                <h3>ბრენდები ჯერ არ არის დამატებული</h3>
+                <p>პირველი ბრენდი მარცხენა ფორმით დაამატეთ.</p>
               </div>
             )}
           </section>
@@ -638,15 +642,15 @@ function Admin() {
           <section className="admin-panel">
             <div className="admin-panel-heading">
               <div>
-                <p className="eyebrow">Add Car</p>
-                <h2>Create a new car entry</h2>
+                <p className="eyebrow">მანქანის დამატება</p>
+                <h2>ახალი მანქანის შექმნა</h2>
               </div>
             </div>
 
             {brands.length > 0 ? (
               <form className="admin-form" onSubmit={handleCreateCar}>
                 <label className="admin-field">
-                  <span>Brand</span>
+                  <span>ბრენდი</span>
                   <select
                     name="brandId"
                     value={carForm.brandId}
@@ -662,7 +666,7 @@ function Admin() {
                 </label>
 
                 <label className="admin-field">
-                  <span>Model</span>
+                  <span>მოდელი</span>
                   <input
                     name="model"
                     value={carForm.model}
@@ -673,7 +677,7 @@ function Admin() {
                 </label>
 
                 <label className="admin-field">
-                  <span>Year</span>
+                  <span>წელი</span>
                   <input
                     name="year"
                     value={carForm.year}
@@ -684,7 +688,7 @@ function Admin() {
                 </label>
 
                 <label className="admin-field">
-                  <span>Image URL</span>
+                  <span>სურათის ბმული</span>
                   <input
                     name="image"
                     value={carForm.image}
@@ -694,13 +698,13 @@ function Admin() {
                 </label>
 
                 <label className="admin-field admin-field-full">
-                  <span>Description</span>
+                  <span>აღწერა</span>
                   <textarea
                     name="description"
                     value={carForm.description}
                     onChange={handleCarFormChange}
                     rows="4"
-                    placeholder="Short description for this car"
+                    placeholder="მანქანის მოკლე აღწერა"
                   />
                 </label>
 
@@ -709,13 +713,13 @@ function Admin() {
                   type="submit"
                   disabled={submittingCar}
                 >
-                  {submittingCar ? "Adding car..." : "Add Car"}
+                  {submittingCar ? "მანქანა ემატება..." : "მანქანის დამატება"}
                 </button>
               </form>
             ) : (
               <div className="admin-empty">
-                <h3>Create a brand first</h3>
-                <p>You need at least one brand before you can add cars.</p>
+                <h3>ჯერ ბრენდი შექმენით</h3>
+                <p>მანქანის დასამატებლად საჭიროა მინიმუმ ერთი ბრენდი.</p>
               </div>
             )}
           </section>
@@ -723,16 +727,16 @@ function Admin() {
           <section className="admin-panel">
             <div className="admin-panel-heading">
               <div>
-                <p className="eyebrow">Cars</p>
-                <h2>Manage existing cars</h2>
+                <p className="eyebrow">მანქანები</p>
+                <h2>არსებული მანქანების მართვა</h2>
               </div>
-              <span className="admin-count">{cars.length} total</span>
+              <span className="admin-count">სულ {cars.length}</span>
             </div>
 
             {carsLoading ? (
               <div className="admin-empty">
-                <h3>Loading cars...</h3>
-                <p>The admin page is requesting the car list.</p>
+                <h3>მანქანები იტვირთება...</h3>
+                <p>ადმინის გვერდი მანქანების სიას ითხოვს.</p>
               </div>
             ) : cars.length > 0 ? (
               <div className="admin-list">
@@ -757,14 +761,14 @@ function Admin() {
                           className="admin-button admin-button-secondary"
                           onClick={() => setSelectedCarId(car._id)}
                         >
-                          Manage Parts
+                          ნაწილების მართვა
                         </button>
                         <button
                           type="button"
                           className="admin-button admin-button-danger"
                           onClick={() => handleDeleteCar(car)}
                         >
-                          Delete
+                          წაშლა
                         </button>
                       </div>
                     </article>
@@ -773,8 +777,8 @@ function Admin() {
               </div>
             ) : (
               <div className="admin-empty">
-                <h3>No cars have been added yet</h3>
-                <p>Create your first car after adding a brand.</p>
+                <h3>მანქანები ჯერ არ არის დამატებული</h3>
+                <p>ბრენდის შექმნის შემდეგ დაამატეთ პირველი მანქანა.</p>
               </div>
             )}
           </section>
@@ -783,8 +787,8 @@ function Admin() {
         <section className="admin-panel-wide">
           <div className="admin-panel-heading">
             <div>
-              <p className="eyebrow">Manage Parts</p>
-              <h2>Parts for the selected car</h2>
+              <p className="eyebrow">ნაწილების მართვა</p>
+              <h2>არჩეული მანქანის ნაწილები</h2>
             </div>
           </div>
 
@@ -803,7 +807,7 @@ function Admin() {
                   <h3>{selectedCar.model}</h3>
                   <p>{selectedCar.year}</p>
                   <p className="selected-car-description">
-                    {selectedCar.description || "No description available."}
+                    {selectedCar.description || "აღწერა არ არის დამატებული."}
                   </p>
                 </div>
               </div>
@@ -812,25 +816,25 @@ function Admin() {
                 <section className="admin-subpanel">
                   <div className="admin-panel-heading">
                     <div>
-                      <p className="eyebrow">Add Part</p>
-                      <h3>Create a part for this car</h3>
+                      <p className="eyebrow">ნაწილის დამატება</p>
+                      <h3>ამ მანქანისთვის ნაწილის შექმნა</h3>
                     </div>
                   </div>
 
                   <form className="admin-form" onSubmit={handleCreatePart}>
                     <label className="admin-field">
-                      <span>Part Name</span>
+                      <span>ნაწილის სახელი</span>
                       <input
                         name="name"
                         value={partForm.name}
                         onChange={handlePartFormChange}
-                        placeholder="Front bumper"
+                        placeholder="წინა ბამპერი"
                         required
                       />
                     </label>
 
                     <label className="admin-field">
-                      <span>Code</span>
+                      <span>კოდი</span>
                       <input
                         name="code"
                         value={partForm.code}
@@ -841,7 +845,7 @@ function Admin() {
                     </label>
 
                     <label className="admin-field">
-                      <span>Price</span>
+                      <span>ფასი</span>
                       <input
                         name="price"
                         type="number"
@@ -855,7 +859,7 @@ function Admin() {
                     </label>
 
                     <label className="admin-field">
-                      <span>Category</span>
+                      <span>კატეგორია</span>
                       <select
                         name="category"
                         value={partForm.category}
@@ -863,14 +867,14 @@ function Admin() {
                       >
                         {categories.map((category) => (
                           <option key={category} value={category}>
-                            {category}
+                            {translateCategory(category)}
                           </option>
                         ))}
                       </select>
                     </label>
 
                     <label className="admin-field">
-                      <span>Condition</span>
+                      <span>მდგომარეობა</span>
                       <select
                         name="condition"
                         value={partForm.condition}
@@ -878,14 +882,14 @@ function Admin() {
                       >
                         {conditions.map((condition) => (
                           <option key={condition} value={condition}>
-                            {condition}
+                            {translateCondition(condition)}
                           </option>
                         ))}
                       </select>
                     </label>
 
                     <label className="admin-field">
-                      <span>Image URL</span>
+                      <span>სურათის ბმული</span>
                       <input
                         name="image"
                         value={partForm.image}
@@ -895,13 +899,13 @@ function Admin() {
                     </label>
 
                     <label className="admin-field admin-field-full">
-                      <span>Description</span>
+                      <span>აღწერა</span>
                       <textarea
                         name="description"
                         value={partForm.description}
                         onChange={handlePartFormChange}
                         rows="4"
-                        placeholder="Short description for this part"
+                        placeholder="ნაწილის მოკლე აღწერა"
                       />
                     </label>
 
@@ -910,7 +914,7 @@ function Admin() {
                       type="submit"
                       disabled={submittingPart}
                     >
-                      {submittingPart ? "Adding part..." : "Add Part"}
+                      {submittingPart ? "ნაწილი ემატება..." : "ნაწილის დამატება"}
                     </button>
                   </form>
                 </section>
@@ -918,16 +922,16 @@ function Admin() {
                 <section className="admin-subpanel">
                   <div className="admin-panel-heading">
                     <div>
-                      <p className="eyebrow">Current Parts</p>
-                      <h3>Parts saved for this car</h3>
+                      <p className="eyebrow">არსებული ნაწილები</p>
+                      <h3>ამ მანქანისთვის შენახული ნაწილები</h3>
                     </div>
-                    <span className="admin-count">{parts.length} total</span>
+                    <span className="admin-count">სულ {parts.length}</span>
                   </div>
 
                   {partsLoading ? (
                     <div className="admin-empty">
-                      <h3>Loading parts...</h3>
-                      <p>The selected car&apos;s parts are being loaded.</p>
+                      <h3>ნაწილები იტვირთება...</h3>
+                      <p>არჩეული მანქანის ნაწილები იტვირთება.</p>
                     </div>
                   ) : parts.length > 0 ? (
                     <div className="admin-list">
@@ -937,8 +941,9 @@ function Admin() {
                             <span className="admin-part-code">{part.code}</span>
                             <h4>{part.name}</h4>
                             <p>
-                              {part.category} | {part.condition} | $
-                              {Number(part.price || 0).toLocaleString()}
+                              {translateCategory(part.category)} |{" "}
+                              {translateCondition(part.condition)} | $
+                              {Number(part.price || 0).toLocaleString("ka-GE")}
                             </p>
                           </div>
 
@@ -947,15 +952,15 @@ function Admin() {
                             className="admin-button admin-button-danger"
                             onClick={() => handleDeletePart(part)}
                           >
-                            Delete Part
+                            წაშლა
                           </button>
                         </article>
                       ))}
                     </div>
                   ) : (
                     <div className="admin-empty">
-                      <h3>No parts added yet</h3>
-                      <p>Add the first part for this car using the form.</p>
+                      <h3>ნაწილები ჯერ არ არის დამატებული</h3>
+                      <p>ამ მანქანისთვის პირველი ნაწილი ზემოთ მოცემული ფორმით დაამატეთ.</p>
                     </div>
                   )}
                 </section>
@@ -963,8 +968,8 @@ function Admin() {
             </div>
           ) : (
             <div className="admin-empty">
-              <h3>Create or select a car first</h3>
-              <p>Select a car above to start managing its parts.</p>
+              <h3>ჯერ შექმენით ან აირჩიეთ მანქანა</h3>
+              <p>ნაწილების სამართავად ზემოდან ერთი მანქანა აირჩიეთ.</p>
             </div>
           )}
         </section>
