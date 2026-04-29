@@ -28,9 +28,15 @@ function Navbar({ isAdminAuthenticated }) {
     });
   };
 
-  const searchPlaceholder = location.pathname.startsWith("/cars/")
-    ? "Search parts by name or code"
-    : "Search cars by brand, model, or year";
+  let searchPlaceholder = "Search brands";
+
+  if (location.pathname.startsWith("/brands/")) {
+    searchPlaceholder = "Search cars by model or year";
+  }
+
+  if (location.pathname.startsWith("/cars/")) {
+    searchPlaceholder = "Search parts by name or code";
+  }
 
   return (
     <header className="site-header">

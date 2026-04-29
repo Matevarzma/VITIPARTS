@@ -50,6 +50,15 @@ export const getCarPlaceholder = (label = "CAR IMAGE") =>
     label,
   });
 
+export const getBrandPlaceholder = (label = "BRAND") =>
+  createPlaceholder({
+    backgroundStart: "#f8f8f8",
+    backgroundEnd: "#dddddd",
+    textColor: "#111111",
+    accentColor: "#f58220",
+    label,
+  });
+
 export const getPartPlaceholder = (label = "PART IMAGE") =>
   createPlaceholder({
     backgroundStart: "#f58220",

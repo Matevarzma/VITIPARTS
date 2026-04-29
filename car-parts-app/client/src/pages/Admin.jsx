@@ -6,21 +6,29 @@ import {
   setStoredAdminToken,
 } from "../services/auth";
 import {
+  createBrand,
   createCar,
   createPartForCar,
   deleteCarById,
   deletePartById,
   getAdminSession,
   getApiErrorMessage,
+  getBrands,
   getCars,
   getPartsByCarId,
   isUnauthorizedError,
   loginAdmin,
 } from "../services/api";
-import { getCarPlaceholder } from "../services/placeholders";
+import { getBrandPlaceholder, getCarPlaceholder } from "../services/placeholders";
+
+const initialBrandForm = {
+  name: "",
+  image: "",
+  description: "",
+};
 
 const initialCarForm = {
-  brand: "",
+  brandId: "",
   model: "",
   year: "",
   image: "",
@@ -46,16 +54,20 @@ const categories = ["Engine", "Body", "Interior"];
 const conditions = ["New", "Used", "Refurbished"];
 
 function Admin() {
+  const [brands, setBrands] = useState([]);
   const [cars, setCars] = useState([]);
   const [parts, setParts] = useState([]);
   const [selectedCarId, setSelectedCarId] = useState("");
+  const [brandForm, setBrandForm] = useState(initialBrandForm);
   const [carForm, setCarForm] = useState(initialCarForm);
   const [partForm, setPartForm] = useState(initialPartForm);
   const [loginForm, setLoginForm] = useState(initialLoginForm);
+  const [brandsLoading, setBrandsLoading] = useState(false);
   const [carsLoading, setCarsLoading] = useState(false);
   const [partsLoading, setPartsLoading] = useState(false);
   const [pageError, setPageError] = useState("");
   const [notice, setNotice] = useState("");
+  const [submittingBrand, setSubmittingBrand] = useState(false);
   const [submittingCar, setSubmittingCar] = useState(false);
   const [submittingPart, setSubmittingPart] = useState(false);
   const [authChecking, setAuthChecking] = useState(true);
@@ -69,10 +81,20 @@ function Admin() {
     [cars, selectedCarId]
   );
 
+  const brandCarCounts = useMemo(() => {
+    return cars.reduce((counts, car) => {
+      const key = car.brandId || car.brand;
+      counts[key] = (counts[key] || 0) + 1;
+      return counts;
+    }, {});
+  }, [cars]);
+
   const resetAdminState = () => {
+    setBrands([]);
     setCars([]);
     setParts([]);
     setSelectedCarId("");
+    setBrandForm(initialBrandForm);
     setCarForm(initialCarForm);
     setPartForm(initialPartForm);
     setPageError("");
@@ -96,6 +118,33 @@ function Admin() {
     }
 
     setPageError(getApiErrorMessage(error, fallbackMessage));
+  };
+
+  const loadBrands = async (preferredBrandId = "") => {
+    try {
+      setBrandsLoading(true);
+      setPageError("");
+
+      const brandsData = await getBrands();
+      setBrands(brandsData);
+
+      setCarForm((currentForm) => {
+        const fallbackBrandId =
+          preferredBrandId || currentForm.brandId || brandsData[0]?._id || "";
+        const matchingBrand = brandsData.find(
+          (brand) => brand._id === fallbackBrandId
+        );
+
+        return {
+          ...currentForm,
+          brandId: matchingBrand ? matchingBrand._id : brandsData[0]?._id || "",
+        };
+      });
+    } catch (error) {
+      handleProtectedError(error, "Could not load brand data.");
+    } finally {
+      setBrandsLoading(false);
+    }
   };
 
   const loadCars = async (preferredCarId = "") => {
@@ -185,6 +234,7 @@ function Admin() {
       return;
     }
 
+    loadBrands();
     loadCars();
   }, [isAuthenticated]);
 
@@ -200,6 +250,15 @@ function Admin() {
     const { name, value } = event.target;
 
     setLoginForm((currentForm) => ({
+      ...currentForm,
+      [name]: value,
+    }));
+  };
+
+  const handleBrandFormChange = (event) => {
+    const { name, value } = event.target;
+
+    setBrandForm((currentForm) => ({
       ...currentForm,
       [name]: value,
     }));
@@ -253,6 +312,27 @@ function Admin() {
     logoutAdminUser("You have been signed out of admin.");
   };
 
+  const handleCreateBrand = async (event) => {
+    event.preventDefault();
+
+    try {
+      setSubmittingBrand(true);
+      setPageError("");
+      setNotice("");
+
+      const createdBrand = await createBrand(brandForm);
+
+      setBrandForm(initialBrandForm);
+      setNotice(`Brand "${createdBrand.name}" was added.`);
+      await loadBrands(createdBrand._id);
+      await loadCars();
+    } catch (error) {
+      handleProtectedError(error, "Could not create brand.");
+    } finally {
+      setSubmittingBrand(false);
+    }
+  };
+
   const handleCreateCar = async (event) => {
     event.preventDefault();
 
@@ -263,7 +343,10 @@ function Admin() {
 
       const createdCar = await createCar(carForm);
 
-      setCarForm(initialCarForm);
+      setCarForm((currentForm) => ({
+        ...initialCarForm,
+        brandId: currentForm.brandId,
+      }));
       setNotice(`Car "${createdCar.brand} ${createdCar.model}" was added.`);
       await loadCars(createdCar._id);
     } catch (error) {
@@ -370,8 +453,8 @@ function Admin() {
               <p className="eyebrow">Admin Login</p>
               <h1>Only you can manage the catalog</h1>
               <p>
-                Public visitors can browse cars and parts, but only the configured
-                admin account can create, edit, or delete catalog data.
+                Public visitors can browse brands, cars, and parts, but only the
+                configured admin account can create, edit, or delete catalog data.
               </p>
 
               {authError ? (
@@ -424,7 +507,7 @@ function Admin() {
         <section className="placeholder-panel admin-intro admin-intro-bar">
           <div>
             <p className="eyebrow">Admin</p>
-            <h1>Add cars and manage parts</h1>
+            <h1>Manage brands, cars, and parts</h1>
             <p>
               Signed in as <strong>{adminUsername}</strong>.
             </p>
@@ -457,41 +540,19 @@ function Admin() {
           <section className="admin-panel">
             <div className="admin-panel-heading">
               <div>
-                <p className="eyebrow">Add Car</p>
-                <h2>Create a new car entry</h2>
+                <p className="eyebrow">Add Brand</p>
+                <h2>Create a new brand entry</h2>
               </div>
             </div>
 
-            <form className="admin-form" onSubmit={handleCreateCar}>
+            <form className="admin-form" onSubmit={handleCreateBrand}>
               <label className="admin-field">
-                <span>Brand</span>
+                <span>Brand Name</span>
                 <input
-                  name="brand"
-                  value={carForm.brand}
-                  onChange={handleCarFormChange}
+                  name="name"
+                  value={brandForm.name}
+                  onChange={handleBrandFormChange}
                   placeholder="Mercedes-Benz"
-                  required
-                />
-              </label>
-
-              <label className="admin-field">
-                <span>Model</span>
-                <input
-                  name="model"
-                  value={carForm.model}
-                  onChange={handleCarFormChange}
-                  placeholder="CLS-Class C218"
-                  required
-                />
-              </label>
-
-              <label className="admin-field">
-                <span>Year</span>
-                <input
-                  name="year"
-                  value={carForm.year}
-                  onChange={handleCarFormChange}
-                  placeholder="2015-2017"
                   required
                 />
               </label>
@@ -500,9 +561,9 @@ function Admin() {
                 <span>Image URL</span>
                 <input
                   name="image"
-                  value={carForm.image}
-                  onChange={handleCarFormChange}
-                  placeholder="https://example.com/car.jpg"
+                  value={brandForm.image}
+                  onChange={handleBrandFormChange}
+                  placeholder="https://example.com/brand.jpg"
                 />
               </label>
 
@@ -510,21 +571,153 @@ function Admin() {
                 <span>Description</span>
                 <textarea
                   name="description"
-                  value={carForm.description}
-                  onChange={handleCarFormChange}
+                  value={brandForm.description}
+                  onChange={handleBrandFormChange}
                   rows="4"
-                  placeholder="Short description for this car"
+                  placeholder="Short description for this brand"
                 />
               </label>
 
               <button
                 className="admin-button"
                 type="submit"
-                disabled={submittingCar}
+                disabled={submittingBrand}
               >
-                {submittingCar ? "Adding car..." : "Add Car"}
+                {submittingBrand ? "Adding brand..." : "Add Brand"}
               </button>
             </form>
+          </section>
+
+          <section className="admin-panel">
+            <div className="admin-panel-heading">
+              <div>
+                <p className="eyebrow">Brands</p>
+                <h2>Saved brands</h2>
+              </div>
+              <span className="admin-count">{brands.length} total</span>
+            </div>
+
+            {brandsLoading ? (
+              <div className="admin-empty">
+                <h3>Loading brands...</h3>
+                <p>The admin page is requesting the brand list.</p>
+              </div>
+            ) : brands.length > 0 ? (
+              <div className="admin-list">
+                {brands.map((brand) => {
+                  const brandImage =
+                    brand.image?.trim() || getBrandPlaceholder(brand.name);
+                  const carCount = brandCarCounts[brand._id] || 0;
+
+                  return (
+                    <article key={brand._id} className="admin-car-item">
+                      <div className="admin-brand-thumb">
+                        <img src={brandImage} alt={brand.name} />
+                      </div>
+
+                      <div className="admin-car-summary">
+                        <h3>{brand.name}</h3>
+                        <p>
+                          {carCount} car{carCount === 1 ? "" : "s"} in this brand
+                        </p>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="admin-empty">
+                <h3>No brands have been added yet</h3>
+                <p>Create your first brand with the form on the left.</p>
+              </div>
+            )}
+          </section>
+        </div>
+
+        <div className="admin-layout">
+          <section className="admin-panel">
+            <div className="admin-panel-heading">
+              <div>
+                <p className="eyebrow">Add Car</p>
+                <h2>Create a new car entry</h2>
+              </div>
+            </div>
+
+            {brands.length > 0 ? (
+              <form className="admin-form" onSubmit={handleCreateCar}>
+                <label className="admin-field">
+                  <span>Brand</span>
+                  <select
+                    name="brandId"
+                    value={carForm.brandId}
+                    onChange={handleCarFormChange}
+                    required
+                  >
+                    {brands.map((brand) => (
+                      <option key={brand._id} value={brand._id}>
+                        {brand.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="admin-field">
+                  <span>Model</span>
+                  <input
+                    name="model"
+                    value={carForm.model}
+                    onChange={handleCarFormChange}
+                    placeholder="CLS-Class C218"
+                    required
+                  />
+                </label>
+
+                <label className="admin-field">
+                  <span>Year</span>
+                  <input
+                    name="year"
+                    value={carForm.year}
+                    onChange={handleCarFormChange}
+                    placeholder="2015-2017"
+                    required
+                  />
+                </label>
+
+                <label className="admin-field">
+                  <span>Image URL</span>
+                  <input
+                    name="image"
+                    value={carForm.image}
+                    onChange={handleCarFormChange}
+                    placeholder="https://example.com/car.jpg"
+                  />
+                </label>
+
+                <label className="admin-field admin-field-full">
+                  <span>Description</span>
+                  <textarea
+                    name="description"
+                    value={carForm.description}
+                    onChange={handleCarFormChange}
+                    rows="4"
+                    placeholder="Short description for this car"
+                  />
+                </label>
+
+                <button
+                  className="admin-button"
+                  type="submit"
+                  disabled={submittingCar}
+                >
+                  {submittingCar ? "Adding car..." : "Add Car"}
+                </button>
+              </form>
+            ) : (
+              <div className="admin-empty">
+                <h3>Create a brand first</h3>
+                <p>You need at least one brand before you can add cars.</p>
+              </div>
+            )}
           </section>
 
           <section className="admin-panel">
@@ -581,7 +774,7 @@ function Admin() {
             ) : (
               <div className="admin-empty">
                 <h3>No cars have been added yet</h3>
-                <p>Create your first car with the form on the left.</p>
+                <p>Create your first car after adding a brand.</p>
               </div>
             )}
           </section>

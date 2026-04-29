@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const brandRoutes = require("./routes/brandRoutes");
 const carRoutes = require("./routes/carRoutes");
 const partRoutes = require("./routes/partRoutes");
 
@@ -30,6 +31,7 @@ app.get("/ping", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/brands", brandRoutes);
 app.use("/api/cars", carRoutes);
 app.use("/api", partRoutes);
 

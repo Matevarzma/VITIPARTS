@@ -14,6 +14,30 @@ export const getCars = async () => {
   return response.data;
 };
 
+export const getBrands = async () => {
+  const response = await api.get("/brands");
+  return response.data;
+};
+
+export const getBrandById = async (id) => {
+  const response = await api.get(`/brands/${id}`);
+  return response.data;
+};
+
+export const getCarsByBrandId = async (id) => {
+  const response = await api.get(`/brands/${id}/cars`);
+  return response.data;
+};
+
+export const createBrand = async (brandData) => {
+  const response = await api.post(
+    "/brands",
+    brandData,
+    getAdminRequestConfig()
+  );
+  return response.data;
+};
+
 export const createCar = async (carData) => {
   const response = await api.post("/cars", carData, getAdminRequestConfig());
   return response.data;

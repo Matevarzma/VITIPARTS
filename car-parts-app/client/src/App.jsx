@@ -4,6 +4,7 @@ import { Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
+import BrandPage from "./pages/BrandPage";
 import CarPage from "./pages/CarPage";
 import Admin from "./pages/Admin";
 import {
@@ -34,6 +35,7 @@ function App() {
       <main className="page-content">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/brands/:id" element={<BrandPage />} />
           <Route path="/cars/:id" element={<CarPage />} />
           <Route path="/admin" element={<Admin />} />
         </Routes>

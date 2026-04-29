@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+const Brand = require("../models/Brand");
 const Car = require("../models/Car");
 const Part = require("../models/Part");
 
@@ -35,10 +36,21 @@ const getCarById = async (req, res) => {
 
 const createCar = async (req, res) => {
   try {
-    const { brand, model, year, image, description } = req.body;
+    const { brandId, model, year, image, description } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(brandId)) {
+      return res.status(400).json({ message: "Please choose a valid brand." });
+    }
+
+    const brand = await Brand.findById(brandId);
+
+    if (!brand) {
+      return res.status(404).json({ message: "Selected brand was not found." });
+    }
 
     const newCar = await Car.create({
-      brand,
+      brandId: brand._id,
+      brand: brand.name,
       model,
       year,
       image,

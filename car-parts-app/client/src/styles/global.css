@@ -107,7 +107,7 @@ img {
 .header-search {
   min-width: 0;
   width: 100%;
-  max-width: 460px;
+  max-width: 560px;
   display: flex;
   align-items: center;
   grid-column: 2;
@@ -763,6 +763,21 @@ img {
 .admin-car-summary h3,
 .admin-part-summary h4 {
   margin: 0 0 6px;
+}
+
+.admin-brand-thumb {
+  width: 120px;
+  min-width: 120px;
+  height: 84px;
+  padding: 10px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f8f8f8 0%, #e8e8e8 100%);
+}
+
+.admin-brand-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .admin-car-summary p,
