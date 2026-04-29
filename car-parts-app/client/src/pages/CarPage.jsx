@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 
 import PartCard from "../components/PartCard";
 import {
@@ -11,11 +11,14 @@ import { getBannerPlaceholder } from "../services/placeholders";
 
 function CarPage() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const [car, setCar] = useState(null);
   const [parts, setParts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
+  const searchTerm = searchParams.get("search")?.trim() || "";
+  const normalizedSearch = searchTerm.toLowerCase();
 
   useEffect(() => {
     let isMounted = true;
@@ -68,27 +71,38 @@ function CarPage() {
 
   const categories = useMemo(() => {
     const uniqueCategories = new Set(
-      parts
-        .map((part) => part.category?.trim())
-        .filter(Boolean)
+      parts.map((part) => part.category?.trim()).filter(Boolean)
     );
 
     return ["All", ...Array.from(uniqueCategories)];
   }, [parts]);
 
   const filteredParts = useMemo(() => {
-    if (activeCategory === "All") {
-      return parts;
-    }
+    return parts.filter((part) => {
+      const matchesCategory =
+        activeCategory === "All" || part.category === activeCategory;
+      const searchableText = [
+        part.name,
+        part.code,
+        part.category,
+        part.condition,
+        part.description,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      const matchesSearch =
+        !normalizedSearch || searchableText.includes(normalizedSearch);
 
-    return parts.filter((part) => part.category === activeCategory);
-  }, [activeCategory, parts]);
+      return matchesCategory && matchesSearch;
+    });
+  }, [activeCategory, normalizedSearch, parts]);
 
   return (
     <section className="page-section">
       <div className="container">
         <Link to="/" className="back-link">
-          უკან დაბრუნება
+          Back to cars
         </Link>
 
         {isLoading ? (
@@ -118,7 +132,7 @@ function CarPage() {
                   <h1>{car.model}</h1>
                   <p className="car-year">{car.year}</p>
                   <p className="car-description">
-                    {car.description || "არ აქვს აღწერა."}
+                    {car.description || "No description available."}
                   </p>
                 </div>
               </div>
@@ -126,18 +140,22 @@ function CarPage() {
 
             <div className="section-heading">
               <div>
-                
+                <p className="eyebrow">Parts Catalog</p>
+                <h2>Available parts for this car</h2>
               </div>
-
-            
+              <p className="section-copy">
+                {searchTerm
+                  ? `Showing ${filteredParts.length} of ${parts.length} parts for "${searchTerm}".`
+                  : "Search by part name or code, or narrow the list with a category filter."}
+              </p>
             </div>
 
             {parts.length > 0 ? (
               <>
                 <div className="filter-toolbar">
                   <div className="filter-toolbar-copy">
-                    <p className="eyebrow">გაფილტვრა</p>
-                    <h3>კატეგორიით მოძებნა</h3>
+                    <p className="eyebrow">Filter</p>
+                    <h3>Browse by category</h3>
                   </div>
 
                   <div className="filter-pills">
@@ -160,7 +178,8 @@ function CarPage() {
                   <p className="parts-summary">
                     Showing <strong>{filteredParts.length}</strong> of{" "}
                     <strong>{parts.length}</strong> parts
-                    {activeCategory !== "All" ? ` in ${activeCategory}` : ""}.
+                    {activeCategory !== "All" ? ` in ${activeCategory}` : ""}
+                    {searchTerm ? ` matching "${searchTerm}"` : ""}.
                   </p>
                 </div>
 
@@ -172,10 +191,10 @@ function CarPage() {
                   </div>
                 ) : (
                   <div className="empty-state">
-                    <h3>No parts in this category</h3>
+                    <h3>No parts match your filters</h3>
                     <p>
-                      Try another filter or add more parts for this car from the
-                      admin page.
+                      Try another category or search term, or add more parts from
+                      the admin page.
                     </p>
                   </div>
                 )}

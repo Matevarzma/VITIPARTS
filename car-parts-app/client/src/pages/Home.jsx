@@ -1,13 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 import CarCard from "../components/CarCard";
 import { getApiErrorMessage, getCars } from "../services/api";
 import { getBannerPlaceholder } from "../services/placeholders";
 
 function Home() {
+  const [searchParams] = useSearchParams();
   const [cars, setCars] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const searchTerm = searchParams.get("search")?.trim() || "";
+  const normalizedSearch = searchTerm.toLowerCase();
 
   useEffect(() => {
     let isMounted = true;
@@ -46,7 +50,27 @@ function Home() {
     };
   }, []);
 
-  const featuredCar = cars[0];
+  const filteredCars = useMemo(() => {
+    if (!normalizedSearch) {
+      return cars;
+    }
+
+    return cars.filter((car) => {
+      const searchableText = [
+        car.brand,
+        car.model,
+        car.year,
+        car.description,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return searchableText.includes(normalizedSearch);
+    });
+  }, [cars, normalizedSearch]);
+
+  const featuredCar = filteredCars[0] || cars[0];
   const bannerImage = featuredCar?.image?.trim()
     ? featuredCar.image
     : getBannerPlaceholder(
@@ -60,17 +84,27 @@ function Home() {
       <div className="container">
         <section className="catalog-banner">
           <div className="catalog-banner-visual">
-            <img src={bannerImage} alt="Catalog banner" />
+            <img
+              src={bannerImage}
+              alt={
+                featuredCar
+                  ? `${featuredCar.brand} ${featuredCar.model}`
+                  : "Catalog banner"
+              }
+            />
           </div>
         </section>
 
         <div className="section-heading">
           <div>
-            
-            
+            <p className="eyebrow">Car Catalog</p>
+            <h2>Choose your car first</h2>
           </div>
-
-   
+          <p className="section-copy">
+            {searchTerm
+              ? `Showing ${filteredCars.length} of ${cars.length} cars for "${searchTerm}".`
+              : "Browse by brand, model, and year, then open the matching parts catalog."}
+          </p>
         </div>
 
         {isLoading ? (
@@ -88,19 +122,22 @@ function Home() {
             </p>
           </div>
         ) : cars.length > 0 ? (
-          <>
-            
-
+          filteredCars.length > 0 ? (
             <div className="cars-grid">
-              {cars.map((car) => (
+              {filteredCars.map((car) => (
                 <CarCard key={car._id || car.id} car={car} />
               ))}
             </div>
-          </>
+          ) : (
+            <div className="empty-state">
+              <h3>No cars match your search</h3>
+              <p>Try a different brand, model, or year in the search bar.</p>
+            </div>
+          )
         ) : (
           <div className="empty-state">
             <h3>No cars available yet</h3>
-            <p>Add your first car from the admin page after we build that step.</p>
+            <p>Add your first car from the admin page to start the catalog.</p>
           </div>
         )}
       </div>

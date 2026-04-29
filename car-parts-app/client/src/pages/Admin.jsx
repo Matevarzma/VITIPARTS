@@ -351,7 +351,10 @@ function Admin() {
         <div className="container">
           <div className="status-panel">
             <h3>Checking admin access...</h3>
-            <p>The app is verifying whether you already have an active admin session.</p>
+            <p>
+              The app is verifying whether you already have an active admin
+              session.
+            </p>
           </div>
         </div>
       </section>
@@ -400,7 +403,11 @@ function Admin() {
                   />
                 </label>
 
-                <button className="admin-button" type="submit" disabled={authSubmitting}>
+                <button
+                  className="admin-button"
+                  type="submit"
+                  disabled={authSubmitting}
+                >
                   {authSubmitting ? "Signing in..." : "Sign In"}
                 </button>
               </form>
@@ -416,10 +423,10 @@ function Admin() {
       <div className="container">
         <section className="placeholder-panel admin-intro admin-intro-bar">
           <div>
-            <p className="eyebrow">ადმინი</p>
-            <h1>დაამატე მანქანები და ნაწილები</h1>
+            <p className="eyebrow">Admin</p>
+            <h1>Add cars and manage parts</h1>
             <p>
-              Signed in as <strong>{adminUsername}</strong>. 
+              Signed in as <strong>{adminUsername}</strong>.
             </p>
           </div>
 
@@ -450,14 +457,14 @@ function Admin() {
           <section className="admin-panel">
             <div className="admin-panel-heading">
               <div>
-                <p className="eyebrow">დაამატე მანქანა</p>
-                <h2>შექმენი ახალი მანქანა</h2>
+                <p className="eyebrow">Add Car</p>
+                <h2>Create a new car entry</h2>
               </div>
             </div>
 
             <form className="admin-form" onSubmit={handleCreateCar}>
               <label className="admin-field">
-                <span>ბრენდი</span>
+                <span>Brand</span>
                 <input
                   name="brand"
                   value={carForm.brand}
@@ -468,7 +475,7 @@ function Admin() {
               </label>
 
               <label className="admin-field">
-                <span>მოდელი</span>
+                <span>Model</span>
                 <input
                   name="model"
                   value={carForm.model}
@@ -479,7 +486,7 @@ function Admin() {
               </label>
 
               <label className="admin-field">
-                <span>წელი</span>
+                <span>Year</span>
                 <input
                   name="year"
                   value={carForm.year}
@@ -490,7 +497,7 @@ function Admin() {
               </label>
 
               <label className="admin-field">
-                <span>სურათი</span>
+                <span>Image URL</span>
                 <input
                   name="image"
                   value={carForm.image}
@@ -500,7 +507,7 @@ function Admin() {
               </label>
 
               <label className="admin-field admin-field-full">
-                <span>აღწერა</span>
+                <span>Description</span>
                 <textarea
                   name="description"
                   value={carForm.description}
@@ -510,7 +517,11 @@ function Admin() {
                 />
               </label>
 
-              <button className="admin-button" type="submit" disabled={submittingCar}>
+              <button
+                className="admin-button"
+                type="submit"
+                disabled={submittingCar}
+              >
                 {submittingCar ? "Adding car..." : "Add Car"}
               </button>
             </form>
@@ -519,10 +530,10 @@ function Admin() {
           <section className="admin-panel">
             <div className="admin-panel-heading">
               <div>
-                <p className="eyebrow">მანქანების სია</p>
-                <h2>გამართე არსებული მანქანები</h2>
+                <p className="eyebrow">Cars</p>
+                <h2>Manage existing cars</h2>
               </div>
-              <span className="admin-count">{cars.length} </span>
+              <span className="admin-count">{cars.length} total</span>
             </div>
 
             {carsLoading ? (
@@ -553,14 +564,14 @@ function Admin() {
                           className="admin-button admin-button-secondary"
                           onClick={() => setSelectedCarId(car._id)}
                         >
-                          გამართეთ ნაწილები
+                          Manage Parts
                         </button>
                         <button
                           type="button"
                           className="admin-button admin-button-danger"
                           onClick={() => handleDeleteCar(car)}
                         >
-                          წაშლა
+                          Delete
                         </button>
                       </div>
                     </article>
@@ -569,8 +580,8 @@ function Admin() {
               </div>
             ) : (
               <div className="admin-empty">
-                <h3>ჯერ მანქანა არ არის დამატებული</h3>
-                <p>შექმენი პირველი მანქანა მარცხენა ღილაკის დახმარებით.</p>
+                <h3>No cars have been added yet</h3>
+                <p>Create your first car with the form on the left.</p>
               </div>
             )}
           </section>
@@ -580,7 +591,7 @@ function Admin() {
           <div className="admin-panel-heading">
             <div>
               <p className="eyebrow">Manage Parts</p>
-              <h2>არჩეული მანქანის ნაწილები</h2>
+              <h2>Parts for the selected car</h2>
             </div>
           </div>
 
@@ -599,8 +610,7 @@ function Admin() {
                   <h3>{selectedCar.model}</h3>
                   <p>{selectedCar.year}</p>
                   <p className="selected-car-description">
-                    {selectedCar.description ||
-                      "აღწერა არ არის დამატებული."}
+                    {selectedCar.description || "No description available."}
                   </p>
                 </div>
               </div>
@@ -609,14 +619,14 @@ function Admin() {
                 <section className="admin-subpanel">
                   <div className="admin-panel-heading">
                     <div>
-                      <p className="eyebrow">დაამატე ნაწილები</p>
-                      <h3>შეექმენი ნაწილები ამ მანქანისთვის</h3>
+                      <p className="eyebrow">Add Part</p>
+                      <h3>Create a part for this car</h3>
                     </div>
                   </div>
 
                   <form className="admin-form" onSubmit={handleCreatePart}>
                     <label className="admin-field">
-                      <span>ნაწილის სახელი</span>
+                      <span>Part Name</span>
                       <input
                         name="name"
                         value={partForm.name}
@@ -627,7 +637,7 @@ function Admin() {
                     </label>
 
                     <label className="admin-field">
-                      <span>კოდი</span>
+                      <span>Code</span>
                       <input
                         name="code"
                         value={partForm.code}
@@ -638,7 +648,7 @@ function Admin() {
                     </label>
 
                     <label className="admin-field">
-                      <span>ფასი</span>
+                      <span>Price</span>
                       <input
                         name="price"
                         type="number"
@@ -652,7 +662,7 @@ function Admin() {
                     </label>
 
                     <label className="admin-field">
-                      <span>კატეგორია</span>
+                      <span>Category</span>
                       <select
                         name="category"
                         value={partForm.category}
@@ -667,7 +677,7 @@ function Admin() {
                     </label>
 
                     <label className="admin-field">
-                      <span>მდგომარეობა</span>
+                      <span>Condition</span>
                       <select
                         name="condition"
                         value={partForm.condition}
@@ -682,7 +692,7 @@ function Admin() {
                     </label>
 
                     <label className="admin-field">
-                      <span>ფოტოL</span>
+                      <span>Image URL</span>
                       <input
                         name="image"
                         value={partForm.image}
@@ -692,7 +702,7 @@ function Admin() {
                     </label>
 
                     <label className="admin-field admin-field-full">
-                      <span>აღწერა</span>
+                      <span>Description</span>
                       <textarea
                         name="description"
                         value={partForm.description}
@@ -715,8 +725,8 @@ function Admin() {
                 <section className="admin-subpanel">
                   <div className="admin-panel-heading">
                     <div>
-                      <p className="eyebrow">არსებული ნაწილები</p>
-                      <h3>ამ მანქანის ნაწილები</h3>
+                      <p className="eyebrow">Current Parts</p>
+                      <h3>Parts saved for this car</h3>
                     </div>
                     <span className="admin-count">{parts.length} total</span>
                   </div>
@@ -751,8 +761,8 @@ function Admin() {
                     </div>
                   ) : (
                     <div className="admin-empty">
-                      <h3>ნაწილები არ არის</h3>
-                      <p>დაამატე პირველი ნაწილი მარცხენა ფორმით.</p>
+                      <h3>No parts added yet</h3>
+                      <p>Add the first part for this car using the form.</p>
                     </div>
                   )}
                 </section>
@@ -760,8 +770,8 @@ function Admin() {
             </div>
           ) : (
             <div className="admin-empty">
-              <h3>შექმენი ან აირჩიე პირველი მანქანა</h3>
-              <p>ნაწილების გასამართად მანქანა უნდა შექმნათ.</p>
+              <h3>Create or select a car first</h3>
+              <p>Select a car above to start managing its parts.</p>
             </div>
           )}
         </section>
