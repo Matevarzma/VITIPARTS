@@ -107,7 +107,7 @@ img {
 .header-search {
   min-width: 0;
   width: 100%;
-  max-width: 560px;
+  max-width: 680px;
   display: flex;
   align-items: center;
   grid-column: 2;
