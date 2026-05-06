@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 
 import BrandCard from "../components/BrandCard";
 import { getApiErrorMessage, getBrands } from "../services/api";
+import { resolveImageUrl } from "../services/images";
 import {
   getBannerPlaceholder,
   getBrandPlaceholder,
@@ -69,8 +70,9 @@ function Home() {
   }, [brands, normalizedSearch]);
 
   const featuredBrand = filteredBrands[0] || brands[0];
-  const bannerImage = featuredBrand?.image?.trim()
-    ? featuredBrand.image
+  const resolvedFeaturedBrandImage = resolveImageUrl(featuredBrand?.image);
+  const bannerImage = resolvedFeaturedBrandImage
+    ? resolvedFeaturedBrandImage
     : featuredBrand
       ? getBrandPlaceholder(featuredBrand.name)
       : getBannerPlaceholder("VITIPARTS");

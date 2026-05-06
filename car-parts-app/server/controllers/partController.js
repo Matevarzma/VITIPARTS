@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const Car = require("../models/Car");
 const Part = require("../models/Part");
+const {
+  deleteStoredImage,
+  saveUploadedImage,
+} = require("../utils/imageStorage");
 
 const getPartsByCarId = async (req, res) => {
   try {
@@ -41,6 +45,8 @@ const createPartForCar = async (req, res) => {
       return res.status(404).json({ message: "Car not found." });
     }
 
+    const storedImage = await saveUploadedImage(image, "part");
+
     const newPart = await Part.create({
       carId: id,
       name,
@@ -48,7 +54,7 @@ const createPartForCar = async (req, res) => {
       price,
       category,
       condition,
-      image,
+      image: storedImage,
       description,
     });
 
@@ -75,6 +81,8 @@ const deletePart = async (req, res) => {
     if (!deletedPart) {
       return res.status(404).json({ message: "Part not found." });
     }
+
+    await deleteStoredImage(deletedPart.image);
 
     res.status(200).json({ message: "Part deleted successfully." });
   } catch (error) {

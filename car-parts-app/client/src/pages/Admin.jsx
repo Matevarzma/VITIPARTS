@@ -24,6 +24,7 @@ import {
   translateCategory,
   translateCondition,
 } from "../services/catalogLabels";
+import { prepareImageUpload, resolveImageUrl } from "../services/images";
 import { getBrandPlaceholder, getCarPlaceholder } from "../services/placeholders";
 
 const initialBrandForm = {
@@ -57,6 +58,56 @@ const initialLoginForm = {
 
 const categories = ["Engine", "Body", "Interior"];
 const conditions = ["New", "Used", "Refurbished"];
+
+function ImageUploadField({ label, image, onChange, onClear }) {
+  const hasImage = Boolean(image);
+
+  return (
+    <div className="admin-field admin-field-full">
+      <span>{label}</span>
+      <label className={`admin-upload-field ${hasImage ? "has-image" : ""}`}>
+        <input
+          className="admin-upload-input"
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          onChange={onChange}
+        />
+
+        <div className="admin-upload-preview">
+          {hasImage ? (
+            <img src={image} alt="" />
+          ) : (
+            <div className="admin-upload-placeholder">
+              <strong>Click to upload</strong>
+              <span>PNG, JPG, or WEBP</span>
+            </div>
+          )}
+        </div>
+
+        <div className="admin-upload-copy">
+          <strong>
+            {hasImage ? "Image selected" : "Choose an image from your computer"}
+          </strong>
+          <p>
+            {hasImage
+              ? "Click here to replace it."
+              : "Use a PNG, JPG, or WEBP file up to 5 MB."}
+          </p>
+        </div>
+      </label>
+
+      {hasImage ? (
+        <button
+          type="button"
+          className="admin-upload-clear"
+          onClick={onClear}
+        >
+          Remove image
+        </button>
+      ) : null}
+    </div>
+  );
+}
 
 function Admin() {
   const [brands, setBrands] = useState([]);
@@ -287,6 +338,55 @@ function Admin() {
     }));
   };
 
+  const handleImageUpload = async (event, setForm) => {
+    const selectedFile = event.target.files?.[0];
+
+    event.target.value = "";
+
+    if (!selectedFile) {
+      return;
+    }
+
+    try {
+      setPageError("");
+      setNotice("");
+
+      const preparedImage = await prepareImageUpload(selectedFile);
+
+      setForm((currentForm) => ({
+        ...currentForm,
+        image: preparedImage,
+      }));
+    } catch (error) {
+      setPageError(
+        error instanceof Error
+          ? error.message
+          : "Failed to prepare the selected image."
+      );
+    }
+  };
+
+  const clearSelectedImage = (setForm) => {
+    setPageError("");
+
+    setForm((currentForm) => ({
+      ...currentForm,
+      image: "",
+    }));
+  };
+
+  const handleBrandImageChange = (event) =>
+    handleImageUpload(event, setBrandForm);
+
+  const handleCarImageChange = (event) => handleImageUpload(event, setCarForm);
+
+  const handlePartImageChange = (event) =>
+    handleImageUpload(event, setPartForm);
+
+  const clearBrandImage = () => clearSelectedImage(setBrandForm);
+  const clearCarImage = () => clearSelectedImage(setCarForm);
+  const clearPartImage = () => clearSelectedImage(setPartForm);
+
   const handleLogin = async (event) => {
     event.preventDefault();
 
@@ -452,8 +552,11 @@ function Admin() {
     }
   };
 
+  const brandFormImage = brandForm.image ? resolveImageUrl(brandForm.image) : "";
+  const carFormImage = carForm.image ? resolveImageUrl(carForm.image) : "";
+  const partFormImage = partForm.image ? resolveImageUrl(partForm.image) : "";
   const selectedCarImage = selectedCar
-    ? selectedCar.image?.trim() ||
+    ? resolveImageUrl(selectedCar.image) ||
       getCarPlaceholder(`${selectedCar.brand} ${selectedCar.model}`)
     : getCarPlaceholder("აირჩიეთ მანქანა");
 
@@ -584,15 +687,12 @@ function Admin() {
                 />
               </label>
 
-              <label className="admin-field">
-                <span>სურათის ბმული</span>
-                <input
-                  name="image"
-                  value={brandForm.image}
-                  onChange={handleBrandFormChange}
-                  placeholder="https://example.com/brand.jpg"
-                />
-              </label>
+              <ImageUploadField
+                label="Brand image"
+                image={brandFormImage}
+                onChange={handleBrandImageChange}
+                onClear={clearBrandImage}
+              />
 
               <label className="admin-field admin-field-full">
                 <span>აღწერა</span>
@@ -633,7 +733,8 @@ function Admin() {
               <div className="admin-list">
                 {brands.map((brand) => {
                   const brandImage =
-                    brand.image?.trim() || getBrandPlaceholder(brand.name);
+                    resolveImageUrl(brand.image) ||
+                    getBrandPlaceholder(brand.name);
                   const carCount = brandCarCounts[brand._id] || 0;
 
                   return (
@@ -720,15 +821,12 @@ function Admin() {
                   />
                 </label>
 
-                <label className="admin-field">
-                  <span>სურათის ბმული</span>
-                  <input
-                    name="image"
-                    value={carForm.image}
-                    onChange={handleCarFormChange}
-                    placeholder="https://example.com/car.jpg"
-                  />
-                </label>
+                <ImageUploadField
+                  label="Car image"
+                  image={carFormImage}
+                  onChange={handleCarImageChange}
+                  onClear={clearCarImage}
+                />
 
                 <label className="admin-field admin-field-full">
                   <span>აღწერა</span>
@@ -921,15 +1019,12 @@ function Admin() {
                       </select>
                     </label>
 
-                    <label className="admin-field">
-                      <span>სურათის ბმული</span>
-                      <input
-                        name="image"
-                        value={partForm.image}
-                        onChange={handlePartFormChange}
-                        placeholder="https://example.com/part.jpg"
-                      />
-                    </label>
+                    <ImageUploadField
+                      label="Part image"
+                      image={partFormImage}
+                      onChange={handlePartImageChange}
+                      onClear={clearPartImage}
+                    />
 
                     <label className="admin-field admin-field-full">
                       <span>აღწერა</span>

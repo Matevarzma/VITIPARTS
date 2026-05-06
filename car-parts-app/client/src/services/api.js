@@ -1,8 +1,20 @@
 import axios from "axios";
 import { getAdminRequestConfig } from "./auth";
 
-const API_BASE_URL =
+export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+
+export const SERVER_BASE_URL = (() => {
+  try {
+    const apiUrl = new URL(API_BASE_URL);
+
+    apiUrl.pathname = apiUrl.pathname.replace(/\/api\/?$/, "/");
+
+    return apiUrl.toString();
+  } catch (error) {
+    return "";
+  }
+})();
 
 const api = axios.create({
   baseURL: API_BASE_URL,

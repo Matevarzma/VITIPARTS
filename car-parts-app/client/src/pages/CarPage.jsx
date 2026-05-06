@@ -8,6 +8,7 @@ import {
   getCarById,
   getPartsByCarId,
 } from "../services/api";
+import { resolveImageUrl } from "../services/images";
 import { getBannerPlaceholder } from "../services/placeholders";
 
 function CarPage() {
@@ -66,8 +67,9 @@ function CarPage() {
     };
   }, [id]);
 
-  const bannerImage = car?.image?.trim()
-    ? car.image
+  const resolvedCarImage = resolveImageUrl(car?.image);
+  const bannerImage = resolvedCarImage
+    ? resolvedCarImage
     : getBannerPlaceholder(car ? `${car.brand} ${car.model}` : "CAR DETAILS");
 
   const categories = useMemo(() => {

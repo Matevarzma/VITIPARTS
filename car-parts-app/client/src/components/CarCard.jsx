@@ -1,11 +1,13 @@
 import { Link } from "react-router-dom";
 
+import { resolveImageUrl } from "../services/images";
 import { getCarPlaceholder } from "../services/placeholders";
 
 function CarCard({ car }) {
   const carId = car._id || car.id;
   const carImage =
-    car.image?.trim() || getCarPlaceholder(`${car.brand} ${car.model}`);
+    resolveImageUrl(car.image) ||
+    getCarPlaceholder(`${car.brand} ${car.model}`);
 
   return (
     <Link to={`/cars/${carId}`} className="car-card">

@@ -3,6 +3,10 @@ const mongoose = require("mongoose");
 const Brand = require("../models/Brand");
 const Car = require("../models/Car");
 const Part = require("../models/Part");
+const {
+  deleteStoredImage,
+  saveUploadedImage,
+} = require("../utils/imageStorage");
 
 const escapeRegex = (value = "") =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -71,9 +75,11 @@ const createBrand = async (req, res) => {
       return res.status(400).json({ message: "This brand already exists." });
     }
 
+    const storedImage = await saveUploadedImage(image, "brand");
+
     const newBrand = await Brand.create({
       name: trimmedName,
-      image,
+      image: storedImage,
       description,
     });
 
@@ -114,14 +120,21 @@ const deleteBrand = async (req, res) => {
       return res.status(404).json({ message: "Brand not found." });
     }
 
-    const brandCars = await Car.find({ brandId: id }).select("_id");
+    const brandCars = await Car.find({ brandId: id }).select("_id image");
     const carIds = brandCars.map((car) => car._id);
 
     if (carIds.length > 0) {
+      const carParts = await Part.find({ carId: { $in: carIds } }).select(
+        "image"
+      );
+
+      await Promise.all(carParts.map((part) => deleteStoredImage(part.image)));
       await Part.deleteMany({ carId: { $in: carIds } });
+      await Promise.all(brandCars.map((car) => deleteStoredImage(car.image)));
       await Car.deleteMany({ brandId: id });
     }
 
+    await deleteStoredImage(brand.image);
     await Brand.findByIdAndDelete(id);
 
     res.status(200).json({ message: "Brand deleted successfully." });

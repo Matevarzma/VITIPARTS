@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
 
+import { resolveImageUrl } from "../services/images";
 import { getBrandPlaceholder } from "../services/placeholders";
 
 function BrandCard({ brand }) {
   const brandId = brand._id || brand.id;
-  const brandImage = brand.image?.trim() || getBrandPlaceholder(brand.name);
+  const brandImage =
+    resolveImageUrl(brand.image) || getBrandPlaceholder(brand.name);
   
 
   return (

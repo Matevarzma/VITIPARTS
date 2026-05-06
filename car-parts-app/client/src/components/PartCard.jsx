@@ -3,6 +3,7 @@ import {
   translateCategory,
   translateCondition,
 } from "../services/catalogLabels";
+import { resolveImageUrl } from "../services/images";
 
 function formatPrice(price) {
   const safePrice = Number(price) || 0;
@@ -11,7 +12,8 @@ function formatPrice(price) {
 
 function PartCard({ part }) {
   const partImage =
-    part.image?.trim() || getPartPlaceholder(part.code || part.name);
+    resolveImageUrl(part.image) ||
+    getPartPlaceholder(part.code || part.name);
   const partDescription =
     part.description?.trim() || "ამ მანქანისთვის განკუთვნილი კატალოგის ნაწილი.";
 

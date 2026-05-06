@@ -7,6 +7,7 @@ import {
   getBrandById,
   getCarsByBrandId,
 } from "../services/api";
+import { resolveImageUrl } from "../services/images";
 import {
   getBannerPlaceholder,
   getBrandPlaceholder,
@@ -81,8 +82,9 @@ function BrandPage() {
     });
   }, [cars, normalizedSearch]);
 
-  const bannerImage = brand?.image?.trim()
-    ? brand.image
+  const resolvedBrandImage = resolveImageUrl(brand?.image);
+  const bannerImage = resolvedBrandImage
+    ? resolvedBrandImage
     : brand
       ? getBrandPlaceholder(brand.name)
       : getBannerPlaceholder("BRAND");
