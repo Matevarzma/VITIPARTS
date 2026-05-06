@@ -19,6 +19,9 @@ import {
   getPartsByCarId,
   isUnauthorizedError,
   loginAdmin,
+  reorderBrands,
+  reorderCars,
+  reorderPartsForCar,
 } from "../services/api";
 import {
   translateCategory,
@@ -59,6 +62,25 @@ const initialLoginForm = {
 const categories = ["Engine", "Body", "Interior"];
 const conditions = ["New", "Used", "Refurbished"];
 
+const moveItemInList = (items, draggedId, targetId) => {
+  const sourceIndex = items.findIndex((item) => item._id === draggedId);
+  const targetIndex = items.findIndex((item) => item._id === targetId);
+
+  if (
+    sourceIndex === -1 ||
+    targetIndex === -1 ||
+    sourceIndex === targetIndex
+  ) {
+    return null;
+  }
+
+  const nextItems = [...items];
+  const [movedItem] = nextItems.splice(sourceIndex, 1);
+  nextItems.splice(targetIndex, 0, movedItem);
+
+  return nextItems;
+};
+
 function ImageUploadField({ label, image, onChange, onClear }) {
   const hasImage = Boolean(image);
 
@@ -78,20 +100,22 @@ function ImageUploadField({ label, image, onChange, onClear }) {
             <img src={image} alt="" />
           ) : (
             <div className="admin-upload-placeholder">
-              <strong>Click to upload</strong>
-              <span>PNG, JPG, or WEBP</span>
+              <strong>დააჭირეთ ასატვირთად</strong>
+              <span>PNG, JPG ან WEBP</span>
             </div>
           )}
         </div>
 
         <div className="admin-upload-copy">
           <strong>
-            {hasImage ? "Image selected" : "Choose an image from your computer"}
+            {hasImage
+              ? "სურათი არჩეულია"
+              : "აირჩიეთ სურათი თქვენი კომპიუტერიდან"}
           </strong>
           <p>
             {hasImage
-              ? "Click here to replace it."
-              : "Use a PNG, JPG, or WEBP file up to 5 MB."}
+              ? "დააჭირეთ, თუ გსურთ ჩანაცვლება."
+              : "გამოიყენეთ PNG, JPG ან WEBP ფაილი 5 მბ-მდე."}
           </p>
         </div>
       </label>
@@ -102,7 +126,7 @@ function ImageUploadField({ label, image, onChange, onClear }) {
           className="admin-upload-clear"
           onClick={onClear}
         >
-          Remove image
+          სურათის წაშლა
         </button>
       ) : null}
     </div>
@@ -126,11 +150,19 @@ function Admin() {
   const [submittingBrand, setSubmittingBrand] = useState(false);
   const [submittingCar, setSubmittingCar] = useState(false);
   const [submittingPart, setSubmittingPart] = useState(false);
+  const [reorderingBrands, setReorderingBrands] = useState(false);
+  const [reorderingCars, setReorderingCars] = useState(false);
+  const [reorderingParts, setReorderingParts] = useState(false);
   const [authChecking, setAuthChecking] = useState(true);
   const [authSubmitting, setAuthSubmitting] = useState(false);
   const [authError, setAuthError] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [adminUsername, setAdminUsername] = useState("");
+  const [dragState, setDragState] = useState({
+    type: "",
+    itemId: "",
+    overId: "",
+  });
 
   const selectedCar = useMemo(
     () => cars.find((car) => car._id === selectedCarId) || null,
@@ -155,6 +187,14 @@ function Admin() {
     setPartForm(initialPartForm);
     setPageError("");
     setNotice("");
+    setReorderingBrands(false);
+    setReorderingCars(false);
+    setReorderingParts(false);
+    setDragState({
+      type: "",
+      itemId: "",
+      overId: "",
+    });
   };
 
   const logoutAdminUser = (message = "") => {
@@ -361,7 +401,7 @@ function Admin() {
       setPageError(
         error instanceof Error
           ? error.message
-          : "Failed to prepare the selected image."
+          : "სურათის დამუშავება ვერ მოხერხდა."
       );
     }
   };
@@ -386,6 +426,162 @@ function Admin() {
   const clearBrandImage = () => clearSelectedImage(setBrandForm);
   const clearCarImage = () => clearSelectedImage(setCarForm);
   const clearPartImage = () => clearSelectedImage(setPartForm);
+
+  const resetDragState = () => {
+    setDragState({
+      type: "",
+      itemId: "",
+      overId: "",
+    });
+  };
+
+  const handleDragStart = (type, itemId) => {
+    setDragState({
+      type,
+      itemId,
+      overId: itemId,
+    });
+  };
+
+  const handleDragOver = (event, type, overId) => {
+    if (dragState.type !== type) {
+      return;
+    }
+
+    event.preventDefault();
+
+    setDragState((currentState) =>
+      currentState.type === type && currentState.overId !== overId
+        ? {
+            ...currentState,
+            overId,
+          }
+        : currentState
+    );
+  };
+
+  const getDraggableItemClassName = (baseClassName, type, itemId, extra = "") =>
+    [
+      baseClassName,
+      extra,
+      dragState.type === type && dragState.itemId === itemId
+        ? "is-dragging"
+        : "",
+      dragState.type === type &&
+      dragState.overId === itemId &&
+      dragState.itemId !== itemId
+        ? "is-drag-over"
+        : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+  const handleBrandDrop = async (event, targetBrandId) => {
+    event.preventDefault();
+
+    if (dragState.type !== "brands") {
+      return;
+    }
+
+    const previousBrands = brands;
+    const nextBrands = moveItemInList(brands, dragState.itemId, targetBrandId);
+
+    resetDragState();
+
+    if (!nextBrands) {
+      return;
+    }
+
+    try {
+      setReorderingBrands(true);
+      setPageError("");
+      setNotice("");
+      setBrands(nextBrands);
+
+      const updatedBrands = await reorderBrands(
+        nextBrands.map((brand) => brand._id)
+      );
+
+      setBrands(updatedBrands);
+      setNotice("ბრენდების თანმიმდევრობა განახლდა.");
+    } catch (error) {
+      setBrands(previousBrands);
+      handleProtectedError(error, "ბრენდების თანმიმდევრობის შეცვლა ვერ მოხერხდა.");
+    } finally {
+      setReorderingBrands(false);
+    }
+  };
+
+  const handleCarDrop = async (event, targetCarId) => {
+    event.preventDefault();
+
+    if (dragState.type !== "cars") {
+      return;
+    }
+
+    const previousCars = cars;
+    const nextCars = moveItemInList(cars, dragState.itemId, targetCarId);
+
+    resetDragState();
+
+    if (!nextCars) {
+      return;
+    }
+
+    try {
+      setReorderingCars(true);
+      setPageError("");
+      setNotice("");
+      setCars(nextCars);
+
+      const updatedCars = await reorderCars(nextCars.map((car) => car._id));
+
+      setCars(updatedCars);
+      setNotice("მანქანების თანმიმდევრობა განახლდა.");
+    } catch (error) {
+      setCars(previousCars);
+      handleProtectedError(error, "მანქანების თანმიმდევრობის შეცვლა ვერ მოხერხდა.");
+    } finally {
+      setReorderingCars(false);
+    }
+  };
+
+  const handlePartDrop = async (event, targetPartId) => {
+    event.preventDefault();
+
+    if (dragState.type !== "parts" || !selectedCarId) {
+      return;
+    }
+
+    const previousParts = parts;
+    const nextParts = moveItemInList(parts, dragState.itemId, targetPartId);
+
+    resetDragState();
+
+    if (!nextParts) {
+      return;
+    }
+
+    try {
+      setReorderingParts(true);
+      setPageError("");
+      setNotice("");
+      setParts(nextParts);
+
+      const updatedParts = await reorderPartsForCar(
+        selectedCarId,
+        nextParts.map((part) => part._id)
+      );
+
+      setParts(updatedParts);
+      setNotice("ნაწილების თანმიმდევრობა განახლდა.");
+    } catch (error) {
+      setParts(previousParts);
+      handleProtectedError(error, "ნაწილების თანმიმდევრობის შეცვლა ვერ მოხერხდა.");
+    } finally {
+      setReorderingParts(false);
+    }
+  };
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -688,7 +884,7 @@ function Admin() {
               </label>
 
               <ImageUploadField
-                label="Brand image"
+                label="ბრენდის სურათი"
                 image={brandFormImage}
                 onChange={handleBrandImageChange}
                 onClear={clearBrandImage}
@@ -738,7 +934,21 @@ function Admin() {
                   const carCount = brandCarCounts[brand._id] || 0;
 
                   return (
-                    <article key={brand._id} className="admin-car-item">
+                    <article
+                      key={brand._id}
+                      className={getDraggableItemClassName(
+                        "admin-car-item",
+                        "brands",
+                        brand._id
+                      )}
+                      draggable={!reorderingBrands}
+                      onDragStart={() => handleDragStart("brands", brand._id)}
+                      onDragOver={(event) =>
+                        handleDragOver(event, "brands", brand._id)
+                      }
+                      onDrop={(event) => handleBrandDrop(event, brand._id)}
+                      onDragEnd={resetDragState}
+                    >
                       <div className="admin-brand-thumb">
                         <img src={brandImage} alt={brand.name} />
                       </div>
@@ -755,6 +965,7 @@ function Admin() {
                           type="button"
                           className="admin-button admin-button-danger"
                           onClick={() => handleDeleteBrand(brand)}
+                          disabled={reorderingBrands}
                         >
                           წაშლა
                         </button>
@@ -822,7 +1033,7 @@ function Admin() {
                 </label>
 
                 <ImageUploadField
-                  label="Car image"
+                  label="მანქანის სურათი"
                   image={carFormImage}
                   onChange={handleCarImageChange}
                   onClear={clearCarImage}
@@ -877,7 +1088,19 @@ function Admin() {
                   return (
                     <article
                       key={car._id}
-                      className={`admin-car-item ${isSelected ? "is-selected" : ""}`}
+                      className={getDraggableItemClassName(
+                        "admin-car-item",
+                        "cars",
+                        car._id,
+                        isSelected ? "is-selected" : ""
+                      )}
+                      draggable={!reorderingCars}
+                      onDragStart={() => handleDragStart("cars", car._id)}
+                      onDragOver={(event) =>
+                        handleDragOver(event, "cars", car._id)
+                      }
+                      onDrop={(event) => handleCarDrop(event, car._id)}
+                      onDragEnd={resetDragState}
                     >
                       <div className="admin-car-summary">
                         <h3>
@@ -891,6 +1114,7 @@ function Admin() {
                           type="button"
                           className="admin-button admin-button-secondary"
                           onClick={() => setSelectedCarId(car._id)}
+                          disabled={reorderingCars}
                         >
                           ნაწილების მართვა
                         </button>
@@ -898,6 +1122,7 @@ function Admin() {
                           type="button"
                           className="admin-button admin-button-danger"
                           onClick={() => handleDeleteCar(car)}
+                          disabled={reorderingCars}
                         >
                           წაშლა
                         </button>
@@ -1020,7 +1245,7 @@ function Admin() {
                     </label>
 
                     <ImageUploadField
-                      label="Part image"
+                      label="ნაწილის სურათი"
                       image={partFormImage}
                       onChange={handlePartImageChange}
                       onClear={clearPartImage}
@@ -1064,7 +1289,21 @@ function Admin() {
                   ) : parts.length > 0 ? (
                     <div className="admin-list">
                       {parts.map((part) => (
-                        <article key={part._id} className="admin-part-item">
+                        <article
+                          key={part._id}
+                          className={getDraggableItemClassName(
+                            "admin-part-item",
+                            "parts",
+                            part._id
+                          )}
+                          draggable={!reorderingParts}
+                          onDragStart={() => handleDragStart("parts", part._id)}
+                          onDragOver={(event) =>
+                            handleDragOver(event, "parts", part._id)
+                          }
+                          onDrop={(event) => handlePartDrop(event, part._id)}
+                          onDragEnd={resetDragState}
+                        >
                           <div className="admin-part-summary">
                             <span className="admin-part-code">{part.code}</span>
                             <h4>{part.name}</h4>
@@ -1079,6 +1318,7 @@ function Admin() {
                             type="button"
                             className="admin-button admin-button-danger"
                             onClick={() => handleDeletePart(part)}
+                            disabled={reorderingParts}
                           >
                             წაშლა
                           </button>

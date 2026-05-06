@@ -3,9 +3,15 @@ const mongoose = require("mongoose");
 const Car = require("../models/Car");
 const Part = require("../models/Part");
 const {
+  ensureSortOrder,
+  getNextSortOrder,
+  reorderDocuments,
+} = require("../utils/ordering");
+const {
   deleteStoredImage,
   saveUploadedImage,
 } = require("../utils/imageStorage");
+const partFallbackSort = { createdAt: -1, _id: 1 };
 
 const getPartsByCarId = async (req, res) => {
   try {
@@ -21,7 +27,9 @@ const getPartsByCarId = async (req, res) => {
       return res.status(404).json({ message: "Car not found." });
     }
 
-    const parts = await Part.find({ carId: id }).sort({ createdAt: -1 });
+    await ensureSortOrder(Part, { carId: id }, partFallbackSort);
+
+    const parts = await Part.find({ carId: id }).sort({ sortOrder: 1, _id: 1 });
 
     res.status(200).json(parts);
   } catch (error) {
@@ -45,7 +53,10 @@ const createPartForCar = async (req, res) => {
       return res.status(404).json({ message: "Car not found." });
     }
 
+    await ensureSortOrder(Part, { carId: id }, partFallbackSort);
+
     const storedImage = await saveUploadedImage(image, "part");
+    const nextSortOrder = await getNextSortOrder(Part, { carId: id });
 
     const newPart = await Part.create({
       carId: id,
@@ -56,6 +67,7 @@ const createPartForCar = async (req, res) => {
       condition,
       image: storedImage,
       description,
+      sortOrder: nextSortOrder,
     });
 
     res.status(201).json(newPart);
@@ -65,6 +77,26 @@ const createPartForCar = async (req, res) => {
     }
 
     res.status(500).json({ message: "Failed to create part." });
+  }
+};
+
+const reorderParts = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid car ID." });
+    }
+
+    await ensureSortOrder(Part, { carId: id }, partFallbackSort);
+    await reorderDocuments(Part, req.body?.orderedIds, { carId: id });
+
+    const parts = await Part.find({ carId: id }).sort({ sortOrder: 1, _id: 1 });
+    res.status(200).json(parts);
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      message: error.message || "Failed to reorder parts.",
+    });
   }
 };
 
@@ -93,5 +125,6 @@ const deletePart = async (req, res) => {
 module.exports = {
   getPartsByCarId,
   createPartForCar,
+  reorderParts,
   deletePart,
 };

@@ -18,7 +18,7 @@ const loadImageElement = (file) =>
 
     image.onerror = () => {
       URL.revokeObjectURL(objectUrl);
-      reject(new Error("Failed to read the selected image."));
+      reject(new Error("არჩეული სურათის წაკითხვა ვერ მოხერხდა."));
     };
 
     image.src = objectUrl;
@@ -53,11 +53,11 @@ export const prepareImageUpload = async (file) => {
   }
 
   if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-    throw new Error("Please choose a PNG, JPG, or WEBP image.");
+    throw new Error("გთხოვთ, აირჩიოთ PNG, JPG ან WEBP სურათი.");
   }
 
   if (file.size > FILE_SIZE_LIMIT_BYTES) {
-    throw new Error("Please choose an image smaller than 5 MB.");
+    throw new Error("გთხოვთ, აირჩიოთ 5 მბ-ზე მცირე ზომის სურათი.");
   }
 
   const sourceImage = await loadImageElement(file);
@@ -72,7 +72,7 @@ export const prepareImageUpload = async (file) => {
   const context = canvas.getContext("2d");
 
   if (!context) {
-    throw new Error("Image upload is not supported in this browser.");
+    throw new Error("ამ ბრაუზერში სურათის ატვირთვა არ არის მხარდაჭერილი.");
   }
 
   canvas.width = width;

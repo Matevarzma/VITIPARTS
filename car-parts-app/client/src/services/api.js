@@ -50,6 +50,15 @@ export const createBrand = async (brandData) => {
   return response.data;
 };
 
+export const reorderBrands = async (orderedIds) => {
+  const response = await api.patch(
+    "/brands/reorder",
+    { orderedIds },
+    getAdminRequestConfig()
+  );
+  return response.data;
+};
+
 export const deleteBrandById = async (id) => {
   const response = await api.delete(`/brands/${id}`, getAdminRequestConfig());
   return response.data;
@@ -57,6 +66,15 @@ export const deleteBrandById = async (id) => {
 
 export const createCar = async (carData) => {
   const response = await api.post("/cars", carData, getAdminRequestConfig());
+  return response.data;
+};
+
+export const reorderCars = async (orderedIds) => {
+  const response = await api.patch(
+    "/cars/reorder",
+    { orderedIds },
+    getAdminRequestConfig()
+  );
   return response.data;
 };
 
@@ -84,6 +102,15 @@ export const createPartForCar = async (id, partData) => {
   const response = await api.post(
     `/cars/${id}/parts`,
     partData,
+    getAdminRequestConfig()
+  );
+  return response.data;
+};
+
+export const reorderPartsForCar = async (id, orderedIds) => {
+  const response = await api.patch(
+    `/cars/${id}/parts/reorder`,
+    { orderedIds },
     getAdminRequestConfig()
   );
   return response.data;

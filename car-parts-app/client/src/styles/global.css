@@ -690,6 +690,12 @@ img {
   margin: 8px 0 0;
 }
 
+.admin-reorder-hint {
+  margin: 8px 0 0;
+  color: var(--text-soft);
+  font-size: 0.92rem;
+}
+
 .admin-count {
   display: inline-flex;
   align-items: center;
@@ -897,11 +903,31 @@ img {
   border: 1px solid #43454a;
   border-radius: 16px;
   background: #313238;
+  cursor: grab;
+  user-select: none;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
 }
 
 .admin-car-item.is-selected {
   border-color: var(--accent);
   box-shadow: inset 0 0 0 1px rgba(245, 130, 32, 0.22);
+}
+
+.admin-car-item.is-dragging,
+.admin-part-item.is-dragging {
+  opacity: 0.55;
+  transform: scale(0.985);
+  cursor: grabbing;
+}
+
+.admin-car-item.is-drag-over,
+.admin-part-item.is-drag-over {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(245, 130, 32, 0.24);
 }
 
 .admin-car-summary h3,

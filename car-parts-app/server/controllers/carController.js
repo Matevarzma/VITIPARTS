@@ -4,14 +4,21 @@ const Brand = require("../models/Brand");
 const Car = require("../models/Car");
 const Part = require("../models/Part");
 const {
+  ensureSortOrder,
+  getNextSortOrder,
+  reorderDocuments,
+} = require("../utils/ordering");
+const {
   deleteStoredImage,
   saveUploadedImage,
 } = require("../utils/imageStorage");
+const carFallbackSort = { brand: 1, model: 1, year: 1, createdAt: 1, _id: 1 };
 
 const getAllCars = async (req, res) => {
   try {
-    // Show cars in a predictable order for the frontend grid.
-    const cars = await Car.find().sort({ brand: 1, model: 1 });
+    await ensureSortOrder(Car, {}, carFallbackSort);
+
+    const cars = await Car.find().sort({ sortOrder: 1, _id: 1 });
     res.status(200).json(cars);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch cars." });
@@ -52,7 +59,10 @@ const createCar = async (req, res) => {
       return res.status(404).json({ message: "Selected brand was not found." });
     }
 
+    await ensureSortOrder(Car, {}, carFallbackSort);
+
     const storedImage = await saveUploadedImage(image, "car");
+    const nextSortOrder = await getNextSortOrder(Car);
 
     const newCar = await Car.create({
       brandId: brand._id,
@@ -61,6 +71,7 @@ const createCar = async (req, res) => {
       year,
       image: storedImage,
       description,
+      sortOrder: nextSortOrder,
     });
 
     res.status(201).json(newCar);
@@ -70,6 +81,20 @@ const createCar = async (req, res) => {
     }
 
     res.status(500).json({ message: "Failed to create car." });
+  }
+};
+
+const reorderCars = async (req, res) => {
+  try {
+    await ensureSortOrder(Car, {}, carFallbackSort);
+    await reorderDocuments(Car, req.body?.orderedIds);
+
+    const cars = await Car.find().sort({ sortOrder: 1, _id: 1 });
+    res.status(200).json(cars);
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      message: error.message || "Failed to reorder cars.",
+    });
   }
 };
 
@@ -104,5 +129,6 @@ module.exports = {
   getAllCars,
   getCarById,
   createCar,
+  reorderCars,
   deleteCar,
 };

@@ -4,16 +4,25 @@ const Brand = require("../models/Brand");
 const Car = require("../models/Car");
 const Part = require("../models/Part");
 const {
+  ensureSortOrder,
+  getNextSortOrder,
+  reorderDocuments,
+} = require("../utils/ordering");
+const {
   deleteStoredImage,
   saveUploadedImage,
 } = require("../utils/imageStorage");
 
 const escapeRegex = (value = "") =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const brandFallbackSort = { name: 1, createdAt: 1, _id: 1 };
+const carFallbackSort = { brand: 1, model: 1, year: 1, createdAt: 1, _id: 1 };
 
 const getAllBrands = async (req, res) => {
   try {
-    const brands = await Brand.find().sort({ name: 1 });
+    await ensureSortOrder(Brand, {}, brandFallbackSort);
+
+    const brands = await Brand.find().sort({ sortOrder: 1, _id: 1 });
     res.status(200).json(brands);
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch brands." });
@@ -54,7 +63,9 @@ const getCarsByBrandId = async (req, res) => {
       return res.status(404).json({ message: "Brand not found." });
     }
 
-    const cars = await Car.find({ brandId: id }).sort({ model: 1, year: 1 });
+    await ensureSortOrder(Car, {}, carFallbackSort);
+
+    const cars = await Car.find({ brandId: id }).sort({ sortOrder: 1, _id: 1 });
 
     res.status(200).json(cars);
   } catch (error) {
@@ -75,12 +86,16 @@ const createBrand = async (req, res) => {
       return res.status(400).json({ message: "This brand already exists." });
     }
 
+    await ensureSortOrder(Brand, {}, brandFallbackSort);
+
     const storedImage = await saveUploadedImage(image, "brand");
+    const nextSortOrder = await getNextSortOrder(Brand);
 
     const newBrand = await Brand.create({
       name: trimmedName,
       image: storedImage,
       description,
+      sortOrder: nextSortOrder,
     });
 
     // If older cars were saved before Brand support was added, link them when
@@ -103,6 +118,20 @@ const createBrand = async (req, res) => {
     }
 
     res.status(500).json({ message: "Failed to create brand." });
+  }
+};
+
+const reorderBrands = async (req, res) => {
+  try {
+    await ensureSortOrder(Brand, {}, brandFallbackSort);
+    await reorderDocuments(Brand, req.body?.orderedIds);
+
+    const brands = await Brand.find().sort({ sortOrder: 1, _id: 1 });
+    res.status(200).json(brands);
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      message: error.message || "Failed to reorder brands.",
+    });
   }
 };
 
@@ -148,5 +177,6 @@ module.exports = {
   getBrandById,
   getCarsByBrandId,
   createBrand,
+  reorderBrands,
   deleteBrand,
 };

@@ -44,6 +44,11 @@ const partSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    sortOrder: {
+      type: Number,
+      default: 0,
+      index: true,
+    },
   },
   {
     timestamps: true,
