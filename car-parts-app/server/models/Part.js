@@ -28,6 +28,7 @@ const partSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      enum: ["Body", "Interior"],
     },
     condition: {
       type: String,

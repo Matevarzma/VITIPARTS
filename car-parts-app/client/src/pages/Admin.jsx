@@ -48,7 +48,7 @@ const initialPartForm = {
   name: "",
   code: "",
   price: "",
-  category: "Engine",
+  category: "Body",
   condition: "Used",
   image: "",
   description: "",
@@ -59,7 +59,7 @@ const initialLoginForm = {
   password: "",
 };
 
-const categories = ["Engine", "Body", "Interior"];
+const categories = ["Body", "Interior"];
 const conditions = ["New", "Used", "Refurbished"];
 
 const moveItemInList = (items, draggedId, targetId) => {

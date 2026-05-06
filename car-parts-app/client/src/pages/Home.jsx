@@ -3,11 +3,8 @@ import { useSearchParams } from "react-router-dom";
 
 import BrandCard from "../components/BrandCard";
 import { getApiErrorMessage, getBrands } from "../services/api";
-import { resolveImageUrl } from "../services/images";
-import {
-  getBannerPlaceholder,
-  getBrandPlaceholder,
-} from "../services/placeholders";
+
+const HOME_BANNER_IMAGE = "/home-banner.png";
 
 function Home() {
   const [searchParams] = useSearchParams();
@@ -69,22 +66,14 @@ function Home() {
     });
   }, [brands, normalizedSearch]);
 
-  const featuredBrand = filteredBrands[0] || brands[0];
-  const resolvedFeaturedBrandImage = resolveImageUrl(featuredBrand?.image);
-  const bannerImage = resolvedFeaturedBrandImage
-    ? resolvedFeaturedBrandImage
-    : featuredBrand
-      ? getBrandPlaceholder(featuredBrand.name)
-      : getBannerPlaceholder("VITIPARTS");
-
   return (
     <section className="page-section">
       <div className="container">
         <section className="catalog-banner">
           <div className="catalog-banner-visual">
             <img
-              src={bannerImage}
-              alt={featuredBrand ? featuredBrand.name : "Catalog banner"}
+              src={HOME_BANNER_IMAGE}
+              alt="VITIPARTS banner"
             />
           </div>
         </section>

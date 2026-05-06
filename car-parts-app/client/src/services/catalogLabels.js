@@ -1,6 +1,5 @@
 const categoryLabels = {
   All: "ყველა",
-  Engine: "ძრავი",
   Body: "კუზაო",
   Interior: "ინტერიერი",
 };
